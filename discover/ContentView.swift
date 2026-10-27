@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import PhotosUI
 
 // ==========================================
 // 1. データモデルの定義
@@ -11,6 +12,7 @@ class Dream {
     var goalValue: String
     var currentTitle: String
     var currentValue: String
+    var imageData: Data?
     
     @Relationship(deleteRule: .cascade)
     var items: [Item] = []
@@ -19,12 +21,14 @@ class Dream {
         goalTitle: String = "月収",
         goalValue: String = "100万円",
         currentTitle: String = "月収",
-        currentValue: String = "35万円"
+        currentValue: String = "35万円",
+        imageData: Data? = nil
     ) {
         self.goalTitle = goalTitle
         self.goalValue = goalValue
         self.currentTitle = currentTitle
         self.currentValue = currentValue
+        self.imageData = imageData
         self.items = []
     }
 }
@@ -34,6 +38,7 @@ class Item {
     var title: String
     var impact: Double
     var ease: Double
+    var reason: String
     var isCompleted: Bool
     var isHighlighted: Bool
     
@@ -42,10 +47,11 @@ class Item {
     @Relationship(deleteRule: .cascade)
     var actions: [Action] = []
     
-    init(title: String, impact: Double = 50.0, ease: Double = 50.0, isCompleted: Bool = false, isHighlighted: Bool = false) {
+    init(title: String, impact: Double = 50.0, ease: Double = 50.0, reason: String = "", isCompleted: Bool = false, isHighlighted: Bool = false) {
         self.title = title
         self.impact = impact
         self.ease = ease
+        self.reason = reason
         self.isCompleted = isCompleted
         self.isHighlighted = isHighlighted
         self.actions = []
@@ -94,15 +100,15 @@ struct ContentView: View {
             currentValue: "35万円"
         )
         
-        let item1 = Item(title: "転職", impact: 80.0, ease: 30.0, isHighlighted: true)
+        let item1 = Item(title: "転職", impact: 80.0, ease: 30.0, reason: "年収アップ確実だが準備が必要", isHighlighted: true)
         item1.actions = [
             Action(title: "履歴書・職務経歴書を作成する", done: true),
             Action(title: "エージェントに登録する", done: false)
         ]
         
-        let item2 = Item(title: "エージェントから受注", impact: 70.0, ease: 60.0, isHighlighted: true)
-        let item3 = Item(title: "App Storeで収益化", impact: 30.0, ease: 40.0, isHighlighted: false)
-        let item4 = Item(title: "起業", impact: 95.0, ease: 10.0, isHighlighted: false)
+        let item2 = Item(title: "エージェントから受注", impact: 70.0, ease: 60.0, reason: "すぐ始められる", isHighlighted: true)
+        let item3 = Item(title: "App Storeで収益化", impact: 30.0, ease: 40.0, reason: "当たれば大きいが時間がかかる", isHighlighted: false)
+        let item4 = Item(title: "起業", impact: 95.0, ease: 10.0, reason: "ハイリスク・ハイリターン", isHighlighted: false)
         
         defaultDream.items = [item1, item2, item3, item4]
         context.insert(defaultDream)
@@ -121,19 +127,19 @@ struct MainTabView: View {
         TabView {
             DreamDetailView(dream: dream, modelContext: modelContext, isHighlightedOnly: false)
                 .tabItem {
-                    Label("案", systemImage: "lightbulb.fill")
+                    Label("追い風アクション", systemImage: "list.bullet")
                 }
             
             HighlightedItemsView(dream: dream)
                 .tabItem {
-                    Label("有力", systemImage: "star.fill")
+                    Label("有力候補", systemImage: "star.fill")
                 }
         }
     }
 }
 
 // ==========================================
-// 4. 「案」タブのビュー
+// 4. 「追い風アクション」タブのビュー
 // ==========================================
 
 enum SortCriterion {
@@ -150,6 +156,9 @@ struct DreamDetailView: View {
     @State private var newTitle = ""
     @State private var newImpact: Double = 50.0
     @State private var newEase: Double = 50.0
+    @State private var newReason = ""
+    
+    @State private var selectedPhotoItem: PhotosPickerItem? = nil
     
     @State private var sortCriterion: SortCriterion = .impact
     @State private var isDescending = true
@@ -181,34 +190,35 @@ struct DreamDetailView: View {
                         HStack(spacing: 8) {
                             TextField("項目", text: $dream.goalTitle)
                                 .textFieldStyle(.roundedBorder)
+                                .submitLabel(.done)
                                 .frame(width: 110)
                             
                             TextField("値", text: $dream.goalValue)
                                 .textFieldStyle(.roundedBorder)
-                                .font(.title2)
+                                .font(.title)
                                 .bold()
+                                .submitLabel(.done)
                         }
                     }
                     
-                    // Current Status (赤色に設定)
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Current Status")
                             .font(.caption2)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.red)
                             .textCase(.uppercase)
                         
                         HStack(spacing: 8) {
-                            // ★ 項目名を赤文字に設定
                             TextField("項目", text: $dream.currentTitle)
                                 .textFieldStyle(.roundedBorder)
-                                .foregroundColor(Color("Current Status"))
+                                .foregroundColor(.red)
+                                .submitLabel(.done)
                                 .frame(width: 110)
                             
-                            // ★ 値を赤文字に設定
                             TextField("値", text: $dream.currentValue)
                                 .textFieldStyle(.roundedBorder)
                                 .font(.headline)
-                                .foregroundColor(Color("Current Status"))
+                                .foregroundColor(.red)
+                                .submitLabel(.done)
                         }
                     }
                 }
@@ -226,9 +236,43 @@ struct DreamDetailView: View {
                 .animation(.easeInOut(duration: 0.3), value: sortCriterion)
                 .animation(.easeInOut(duration: 0.3), value: isDescending)
             }
-            .navigationTitle("案の一覧")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    HStack(spacing: 8) {
+                        PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                            if let data = dream.imageData, let uiImage = UIImage(data: data) {
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 30, height: 30)
+                                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.secondary.opacity(0.3), lineWidth: 1))
+                            } else {
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(Color(.systemGray5))
+                                        .frame(width: 30, height: 30)
+                                    Image(systemName: "photo.badge.plus")
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
+                        .onChange(of: selectedPhotoItem) { _, newItem in
+                            Task {
+                                if let data = try? await newItem?.loadTransferable(type: Data.self) {
+                                    dream.imageData = data
+                                }
+                            }
+                        }
+                        
+                        Text("Dream")
+                            .font(.headline)
+                            .bold()
+                    }
+                }
+                
                 ToolbarItem(placement: .topBarTrailing) {
                     HStack(spacing: 12) {
                         Menu {
@@ -278,6 +322,10 @@ struct DreamDetailView: View {
                     Form {
                         Section(header: Text("新しい行動の追加")) {
                             TextField("行動名（例: スキルを学ぶ）", text: $newTitle)
+                                .submitLabel(.done)
+                            
+                            TextField("有利な点・不利な点", text: $newReason, axis: .vertical)
+                                .submitLabel(.done)
                             
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("影響度: \(Int(newImpact))%")
@@ -287,7 +335,6 @@ struct DreamDetailView: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("やり易さ: \(Int(newEase))%")
                                 Slider(value: $newEase, in: 0...100, step: 5)
-                                    .accentColor(.gray)
                             }
                         }
                     }
@@ -299,9 +346,10 @@ struct DreamDetailView: View {
                         ToolbarItem(placement: .confirmationAction) {
                             Button("追加") {
                                 if !newTitle.isEmpty {
-                                    let item = Item(title: newTitle, impact: newImpact, ease: newEase)
+                                    let item = Item(title: newTitle, impact: newImpact, ease: newEase, reason: newReason)
                                     dream.items.append(item)
                                     newTitle = ""
+                                    newReason = ""
                                     newImpact = 50.0
                                     newEase = 50.0
                                     isAddingItem = false
@@ -326,7 +374,7 @@ struct DreamDetailView: View {
 }
 
 // ==========================================
-// 5. 「有力」タブのビュー
+// 5. 「有力候補」タブのビュー
 // ==========================================
 
 struct HighlightedItemsView: View {
@@ -341,9 +389,9 @@ struct HighlightedItemsView: View {
             Group {
                 if highlightedItems.isEmpty {
                     ContentUnavailableView(
-                        "有力な案がありません",
+                        "有力候補がありません",
                         systemImage: "star",
-                        description: Text("「案」タブでアイテムを長押しして星（⭐️）をつけると、ここに表示されます。")
+                        description: Text("「追い風アクション」タブで右上の星ボタンを押して星をつけると、ここに表示されます。")
                     )
                 } else {
                     List {
@@ -354,14 +402,14 @@ struct HighlightedItemsView: View {
                     .listStyle(.insetGrouped)
                 }
             }
-            .navigationTitle("有力なアクション")
+            .navigationTitle("有力候補")
             .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
 
 // ==========================================
-// 6. 「有力」タブ専用の行ビュー
+// 6. 「有力候補」タブ専用の行ビュー（強調表示なし）
 // ==========================================
 
 struct HighlightedItemRowView: View {
@@ -382,6 +430,12 @@ struct HighlightedItemRowView: View {
     private var impactColor: Color {
         let hue = (1.0 - (currentImpact / 100.0)) * 0.6
         return Color(hue: hue, saturation: 0.8, brightness: 0.9)
+    }
+    
+    // ★ やり易さ：彩度0（モノクロ）で、値が大きいほど黒が濃くなる（brightnessが小さくなる）
+    private var easeColor: Color {
+        let brightness = 0.85 - (currentEase / 100.0) * 0.75 // 15%（黒に近い）〜 85%（明るいグレー）
+        return Color(white: brightness)
     }
     
     private func encircledSystemImage(for number: Int) -> String {
@@ -419,44 +473,61 @@ struct HighlightedItemRowView: View {
                 
                 TextField("行動を入力", text: $item.title)
                     .font(.headline)
+                    .textInputAutocapitalization(.never)
+                    .submitLabel(.done)
+                    .clearButton(text: $item.title)
                     .strikethrough(item.isCompleted, color: .secondary)
                     .foregroundColor(item.isCompleted ? .secondary : .primary)
+                
+                // 星を表示したままトグル可能
+                Button(action: {
+                    withAnimation {
+                        item.isHighlighted.toggle()
+                    }
+                }) {
+                    Image(systemName: item.isHighlighted ? "star.fill" : "star")
+                        .foregroundColor(item.isHighlighted ? .orange : .secondary)
+                        .font(.title3)
+                }
+                .buttonStyle(.plain)
             }
             
-            HStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        Text("影響度")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Spacer()
-                        Text("\(Int(currentImpact))%")
-                            .font(.caption)
-                            .bold()
-                            .foregroundColor(impactColor)
-                    }
-                    
-                    Slider(
-                        value: Binding(
-                            get: { tempImpact ?? item.impact },
-                            set: { tempImpact = $0 }
-                        ),
-                        in: 0...100,
-                        step: 5,
-                        onEditingChanged: { editing in
-                            if editing {
-                                tempImpact = item.impact
-                            } else {
-                                if let finalValue = tempImpact {
-                                    item.impact = finalValue
-                                    tempImpact = nil
-                                }
-                            }
-                        }
-                    )
-                    .accentColor(impactColor)
+            // --- 影響度スライダー（幅100%） ---
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text("影響度")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text("\(Int(currentImpact))%")
+                        .font(.caption)
+                        .bold()
+                        .foregroundColor(impactColor)
                 }
                 
+                Slider(
+                    value: Binding(
+                        get: { tempImpact ?? item.impact },
+                        set: { tempImpact = $0 }
+                    ),
+                    in: 0...100,
+                    step: 5,
+                    onEditingChanged: { editing in
+                        if editing {
+                            tempImpact = item.impact
+                        } else {
+                            if let finalValue = tempImpact {
+                                item.impact = finalValue
+                                tempImpact = nil
+                            }
+                        }
+                    }
+                )
+                .accentColor(impactColor)
+            }
+            
+            // --- やり易さスライダー（幅40%） ＆ 右側に TextField (item.reason) ---
+            HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text("やり易さ")
@@ -466,7 +537,7 @@ struct HighlightedItemRowView: View {
                         Text("\(Int(currentEase))%")
                             .font(.caption)
                             .bold()
-                            .foregroundColor(.gray)
+                            .foregroundColor(easeColor) // モノクロの濃淡
                     }
                     
                     Slider(
@@ -487,8 +558,22 @@ struct HighlightedItemRowView: View {
                             }
                         }
                     )
-                    .accentColor(.gray)
+                    .accentColor(easeColor)
                 }
+                .frame(width: UIScreen.main.bounds.width * 0.4)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("有利な点・不利な点")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    TextField("有利な点・不利な点", text: $item.reason, axis: .vertical)
+                        .textFieldStyle(.roundedBorder)
+                        .font(.subheadline)
+                        .submitLabel(.done)
+                        .clearButton(text: $item.reason)
+                }
+                .frame(maxWidth: .infinity)
             }
             
             Divider()
@@ -533,6 +618,7 @@ struct HighlightedItemRowView: View {
             }
         }
         .padding(10)
+        // ★ 有力候補タブでは背景色や枠線の強調表示を削除
         .padding(.vertical, 2)
         .opacity(item.isCompleted ? 0.6 : 1.0)
     }
@@ -549,10 +635,10 @@ struct ActionRowView: View {
     
     var body: some View {
         HStack(spacing: 8) {
-            Text("\(index).")
+            Text("\(index)")
                 .font(.caption)
                 .foregroundColor(.secondary)
-                .frame(width: 20, alignment: .leading)
+                .frame(width: 16, alignment: .leading)
             
             Button(action: {
                 action.done.toggle()
@@ -565,6 +651,8 @@ struct ActionRowView: View {
             
             TextField("アクションを入力", text: $action.title)
                 .font(.subheadline)
+                .submitLabel(.done)
+                .clearButton(text: $action.title)
                 .strikethrough(action.done, color: .secondary)
                 .foregroundColor(action.done ? .secondary : .primary)
             
@@ -582,7 +670,7 @@ struct ActionRowView: View {
 }
 
 // ==========================================
-// 8. 「案」タブ用の個別アイテム行ビュー
+// 8. 「追い風アクション」タブ用の個別アイテム行ビュー
 // ==========================================
 
 struct ItemRowView: View {
@@ -604,6 +692,12 @@ struct ItemRowView: View {
         return Color(hue: hue, saturation: 0.8, brightness: 0.9)
     }
     
+    // ★ モノクロの濃淡（値が大きいほど黒が濃い）
+    private var easeColor: Color {
+        let brightness = 0.85 - (currentEase / 100.0) * 0.75
+        return Color(white: brightness)
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 12) {
@@ -616,54 +710,61 @@ struct ItemRowView: View {
                 }
                 .buttonStyle(.plain)
                 
-                HStack(spacing: 4) {
-                    if item.isHighlighted {
-                        Image(systemName: "star.fill")
-                            .foregroundColor(.orange)
-                            .font(.subheadline)
+                TextField("行動を入力", text: $item.title)
+                    .font(.headline)
+                    .submitLabel(.done)
+                    .clearButton(text: $item.title)
+                    .strikethrough(item.isCompleted, color: .secondary)
+                    .foregroundColor(item.isCompleted ? .secondary : .primary)
+                
+                Button(action: {
+                    withAnimation {
+                        item.isHighlighted.toggle()
                     }
-                    
-                    TextField("行動を入力", text: $item.title)
-                        .font(.headline)
-                        .strikethrough(item.isCompleted, color: .secondary)
-                        .foregroundColor(item.isCompleted ? .secondary : .primary)
+                }) {
+                    Image(systemName: item.isHighlighted ? "star.fill" : "star")
+                        .foregroundColor(item.isHighlighted ? .orange : .secondary)
+                        .font(.title3)
                 }
+                .buttonStyle(.plain)
             }
             
-            HStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        Text("影響度")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Spacer()
-                        Text("\(Int(currentImpact))%")
-                            .font(.caption)
-                            .bold()
-                            .foregroundColor(impactColor)
-                    }
-                    
-                    Slider(
-                        value: Binding(
-                            get: { tempImpact ?? item.impact },
-                            set: { tempImpact = $0 }
-                        ),
-                        in: 0...100,
-                        step: 5,
-                        onEditingChanged: { editing in
-                            if editing {
-                                tempImpact = item.impact
-                            } else {
-                                if let finalValue = tempImpact {
-                                    item.impact = finalValue
-                                    tempImpact = nil
-                                }
-                            }
-                        }
-                    )
-                    .accentColor(impactColor)
+            // --- 影響度スライダー（幅100%） ---
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text("影響度")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text("\(Int(currentImpact))%")
+                        .font(.caption)
+                        .bold()
+                        .foregroundColor(impactColor)
                 }
                 
+                Slider(
+                    value: Binding(
+                        get: { tempImpact ?? item.impact },
+                        set: { tempImpact = $0 }
+                    ),
+                    in: 0...100,
+                    step: 5,
+                    onEditingChanged: { editing in
+                        if editing {
+                            tempImpact = item.impact
+                        } else {
+                            if let finalValue = tempImpact {
+                                item.impact = finalValue
+                                tempImpact = nil
+                            }
+                        }
+                    }
+                )
+                .accentColor(impactColor)
+            }
+            
+            // --- やり易さスライダー（幅40%） ＆ 右側に TextField (item.reason) ---
+            HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text("やり易さ")
@@ -673,7 +774,7 @@ struct ItemRowView: View {
                         Text("\(Int(currentEase))%")
                             .font(.caption)
                             .bold()
-                            .foregroundColor(.gray)
+                            .foregroundColor(easeColor)
                     }
                     
                     Slider(
@@ -694,11 +795,26 @@ struct ItemRowView: View {
                             }
                         }
                     )
-                    .accentColor(.gray)
+                    .accentColor(easeColor)
                 }
+                .frame(width: UIScreen.main.bounds.width * 0.4)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("有利な点・不利な点")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    TextField("有利な点・不利な点", text: $item.reason, axis: .vertical)
+                        .textFieldStyle(.roundedBorder)
+                        .font(.subheadline)
+                        .submitLabel(.done)
+                        .clearButton(text: $item.reason)
+                }
+                .frame(maxWidth: .infinity)
             }
         }
         .padding(10)
+        // 「追い風アクション」タブでは引き続きスターありアイテムを背景色・枠線で強調表示
         .background(
             RoundedRectangle(cornerRadius: 8)
                 .fill(item.isHighlighted ? Color.orange.opacity(0.08) : Color.clear)
@@ -707,12 +823,37 @@ struct ItemRowView: View {
             RoundedRectangle(cornerRadius: 8)
                 .stroke(item.isHighlighted ? Color.orange.opacity(0.5) : Color.clear, lineWidth: 1.5)
         )
-        .onLongPressGesture {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                item.isHighlighted.toggle()
-            }
-        }
         .padding(.vertical, 2)
         .opacity(item.isCompleted ? 0.6 : 1.0)
+    }
+}
+
+// ==========================================
+// 9. TextFieldにクリアボタンを追加する便利拡張
+// ==========================================
+
+extension View {
+    func clearButton(text: Binding<String>) -> some View {
+        self.modifier(ClearButtonModifier(text: text))
+    }
+}
+
+struct ClearButtonModifier: ViewModifier {
+    @Binding var text: String
+    
+    func body(content: Content) -> some View {
+        HStack {
+            content
+            if !text.isEmpty {
+                Button(action: {
+                    text = ""
+                }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.secondary)
+                        .font(.subheadline)
+                }
+                .buttonStyle(.plain)
+            }
+        }
     }
 }
