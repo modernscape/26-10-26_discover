@@ -74,7 +74,7 @@ struct ContentView: View {
     @Query private var dreams: [Dream]
     
     var body: some View {
-        NavigationStack {
+        Group {
             if let dream = dreams.first {
                 MainTabView(dream: dream, modelContext: modelContext)
             } else {
@@ -167,142 +167,151 @@ struct DreamDetailView: View {
     }
     
     var body: some View {
-        VStack(spacing: 0) {
-            VStack(spacing: 14) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Dream Goal")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                        .textCase(.uppercase)
-                    
-                    HStack(spacing: 8) {
-                        TextField("項目", text: $dream.goalTitle)
-                            .textFieldStyle(.roundedBorder)
-                            .frame(width: 110)
-                        
-                        TextField("値", text: $dream.goalValue)
-                            .textFieldStyle(.roundedBorder)
-                            .font(.title2)
-                            .bold()
-                    }
-                }
+        NavigationStack {
+            VStack(spacing: 0) {
                 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Current Status")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                        .textCase(.uppercase)
-                    
-                    HStack(spacing: 8) {
-                        TextField("項目", text: $dream.currentTitle)
-                            .textFieldStyle(.roundedBorder)
-                            .frame(width: 110)
+                // --- ヘッダー部分 ---
+                VStack(spacing: 14) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Dream Goal")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                            .textCase(.uppercase)
                         
-                        TextField("値", text: $dream.currentValue)
-                            .textFieldStyle(.roundedBorder)
-                            .font(.headline)
-                    }
-                }
-            }
-            .padding(16)
-            .background(Color(.systemGroupedBackground))
-            
-            List {
-                ForEach(sortedItems) { item in
-                    ItemRowView(item: item)
-                }
-                .onDelete(perform: deleteItems)
-            }
-            .listStyle(.insetGrouped)
-            .animation(.easeInOut(duration: 0.3), value: sortedItems.map { $0.id })
-            .animation(.easeInOut(duration: 0.3), value: sortCriterion)
-            .animation(.easeInOut(duration: 0.3), value: isDescending)
-        }
-        .navigationTitle("案の一覧")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                HStack(spacing: 12) {
-                    Menu {
-                        Section("並び替え基準") {
-                            Button(action: { sortCriterion = .impact }) {
-                                HStack {
-                                    Text("影響度 (Impact)")
-                                    if sortCriterion == .impact { Image(systemName: "checkmark") }
-                                }
-                            }
-                            Button(action: { sortCriterion = .ease }) {
-                                HStack {
-                                    Text("やり易さ (Ease)")
-                                    if sortCriterion == .ease { Image(systemName: "checkmark") }
-                                }
-                            }
+                        HStack(spacing: 8) {
+                            TextField("項目", text: $dream.goalTitle)
+                                .textFieldStyle(.roundedBorder)
+                                .frame(width: 110)
+                            
+                            TextField("値", text: $dream.goalValue)
+                                .textFieldStyle(.roundedBorder)
+                                .font(.title2)
+                                .bold()
                         }
-                        
-                        Section("順序") {
-                            Button(action: { isDescending = true }) {
-                                HStack {
-                                    Text("高い順 (降順)")
-                                    if isDescending { Image(systemName: "checkmark") }
-                                }
-                            }
-                            Button(action: { isDescending = false }) {
-                                HStack {
-                                    Text("低い順 (昇順)")
-                                    if !isDescending { Image(systemName: "checkmark") }
-                                }
-                            }
-                        }
-                    } label: {
-                        Image(systemName: "arrow.up.arrow.down.circle.fill")
-                            .font(.title2)
                     }
                     
-                    Button(action: { isAddingItem = true }) {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.title2)
+                    // Current Status (赤色に設定)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Current Status")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                            .textCase(.uppercase)
+                        
+                        HStack(spacing: 8) {
+                            // ★ 項目名を赤文字に設定
+                            TextField("項目", text: $dream.currentTitle)
+                                .textFieldStyle(.roundedBorder)
+                                .foregroundColor(Color("Current Status"))
+                                .frame(width: 110)
+                            
+                            // ★ 値を赤文字に設定
+                            TextField("値", text: $dream.currentValue)
+                                .textFieldStyle(.roundedBorder)
+                                .font(.headline)
+                                .foregroundColor(Color("Current Status"))
+                        }
                     }
                 }
+                .padding(16)
+                .background(Color(.systemGroupedBackground))
+                
+                List {
+                    ForEach(sortedItems) { item in
+                        ItemRowView(item: item)
+                    }
+                    .onDelete(perform: deleteItems)
+                }
+                .listStyle(.insetGrouped)
+                .animation(.easeInOut(duration: 0.3), value: sortedItems.map { $0.id })
+                .animation(.easeInOut(duration: 0.3), value: sortCriterion)
+                .animation(.easeInOut(duration: 0.3), value: isDescending)
             }
-        }
-        .sheet(isPresented: $isAddingItem) {
-            NavigationStack {
-                Form {
-                    Section(header: Text("新しい行動の追加")) {
-                        TextField("行動名（例: スキルを学ぶ）", text: $newTitle)
-                        
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("影響度: \(Int(newImpact))%")
-                            Slider(value: $newImpact, in: 0...100, step: 5)
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("やり易さ: \(Int(newEase))%")
-                            Slider(value: $newEase, in: 0...100, step: 5)
-                                .accentColor(.green)
-                        }
-                    }
-                }
-                .navigationTitle("行動を追加")
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("キャンセル") { isAddingItem = false }
-                    }
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button("追加") {
-                            if !newTitle.isEmpty {
-                                let item = Item(title: newTitle, impact: newImpact, ease: newEase)
-                                dream.items.append(item)
-                                newTitle = ""
-                                newImpact = 50.0
-                                newEase = 50.0
-                                isAddingItem = false
+            .navigationTitle("案の一覧")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    HStack(spacing: 12) {
+                        Menu {
+                            Section("並び替え基準") {
+                                Button(action: { sortCriterion = .impact }) {
+                                    HStack {
+                                        Text("影響度 (Impact)")
+                                        if sortCriterion == .impact { Image(systemName: "checkmark") }
+                                    }
+                                }
+                                Button(action: { sortCriterion = .ease }) {
+                                    HStack {
+                                        Text("やり易さ (Ease)")
+                                        if sortCriterion == .ease { Image(systemName: "checkmark") }
+                                    }
+                                }
                             }
-                        }.bold()
+                            
+                            Section("順序") {
+                                Button(action: { isDescending = true }) {
+                                    HStack {
+                                        Text("高い順 (降順)")
+                                        if isDescending { Image(systemName: "checkmark") }
+                                    }
+                                }
+                                Button(action: { isDescending = false }) {
+                                    HStack {
+                                        Text("低い順 (昇順)")
+                                        if !isDescending { Image(systemName: "checkmark") }
+                                    }
+                                }
+                            }
+                        } label: {
+                            Image(systemName: "arrow.up.arrow.down.circle.fill")
+                                .font(.title2)
+                        }
+                        
+                        Button(action: { isAddingItem = true }) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.title2)
+                        }
                     }
                 }
             }
-            .presentationDetents([.medium, .large])
+            .sheet(isPresented: $isAddingItem) {
+                NavigationStack {
+                    Form {
+                        Section(header: Text("新しい行動の追加")) {
+                            TextField("行動名（例: スキルを学ぶ）", text: $newTitle)
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("影響度: \(Int(newImpact))%")
+                                Slider(value: $newImpact, in: 0...100, step: 5)
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("やり易さ: \(Int(newEase))%")
+                                Slider(value: $newEase, in: 0...100, step: 5)
+                                    .accentColor(.gray)
+                            }
+                        }
+                    }
+                    .navigationTitle("行動を追加")
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("キャンセル") { isAddingItem = false }
+                        }
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("追加") {
+                                if !newTitle.isEmpty {
+                                    let item = Item(title: newTitle, impact: newImpact, ease: newEase)
+                                    dream.items.append(item)
+                                    newTitle = ""
+                                    newImpact = 50.0
+                                    newEase = 50.0
+                                    isAddingItem = false
+                                }
+                            }.bold()
+                        }
+                    }
+                }
+                .presentationDetents([.medium, .large])
+            }
         }
     }
     
@@ -352,7 +361,7 @@ struct HighlightedItemsView: View {
 }
 
 // ==========================================
-// 6. 「有力」タブ専用の行ビュー（丸囲み数字アイコン対応）
+// 6. 「有力」タブ専用の行ビュー
 // ==========================================
 
 struct HighlightedItemRowView: View {
@@ -375,7 +384,6 @@ struct HighlightedItemRowView: View {
         return Color(hue: hue, saturation: 0.8, brightness: 0.9)
     }
     
-    // ★ 1〜50までの丸囲み数字アイコンのシステム名を返すヘルパー
     private func encircledSystemImage(for number: Int) -> String {
         switch number {
         case 1: return "1.circle.fill"
@@ -388,19 +396,17 @@ struct HighlightedItemRowView: View {
         case 8: return "8.circle.fill"
         case 9: return "9.circle.fill"
         case 10: return "10.circle.fill"
-        default: return "\(number).circle.fill" // 11以降もSF Symbolsがあれば対応
+        default: return "\(number).circle.fill"
         }
     }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             
-            // --- 1段目：丸囲み数字アイコン ＋ チェックボックス ＋ 行動名 ---
             HStack(spacing: 12) {
-                // ★ 丸囲み数字（色付き円 ＋ 大きめの数字デザイン）
                 Image(systemName: encircledSystemImage(for: index))
-                    .font(.title2) // やや大きめのサイズ
-                    .foregroundColor(.accentColor) // テーマカラーの円・数字
+                    .font(.title2)
+                    .foregroundColor(.accentColor)
                 
                 Button(action: {
                     item.isCompleted.toggle()
@@ -415,71 +421,78 @@ struct HighlightedItemRowView: View {
                     .font(.headline)
                     .strikethrough(item.isCompleted, color: .secondary)
                     .foregroundColor(item.isCompleted ? .secondary : .primary)
-                
-                Spacer()
-                
-                Text("影響度: \(Int(currentImpact))%")
-                    .font(.subheadline)
-                    .bold()
-                    .foregroundColor(impactColor)
             }
             
-            // 影響度スライダー
-            Slider(
-                value: Binding(
-                    get: { tempImpact ?? item.impact },
-                    set: { tempImpact = $0 }
-                ),
-                in: 0...100,
-                step: 5,
-                onEditingChanged: { editing in
-                    if editing {
-                        tempImpact = item.impact
-                    } else {
-                        if let finalValue = tempImpact {
-                            item.impact = finalValue
-                            tempImpact = nil
-                        }
+            HStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text("影響度")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text("\(Int(currentImpact))%")
+                            .font(.caption)
+                            .bold()
+                            .foregroundColor(impactColor)
                     }
+                    
+                    Slider(
+                        value: Binding(
+                            get: { tempImpact ?? item.impact },
+                            set: { tempImpact = $0 }
+                        ),
+                        in: 0...100,
+                        step: 5,
+                        onEditingChanged: { editing in
+                            if editing {
+                                tempImpact = item.impact
+                            } else {
+                                if let finalValue = tempImpact {
+                                    item.impact = finalValue
+                                    tempImpact = nil
+                                }
+                            }
+                        }
+                    )
+                    .accentColor(impactColor)
                 }
-            )
-            .accentColor(impactColor)
-            
-            // やり易さスライダー
-            HStack {
-                Text("やり易さ")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                Spacer()
-                Text("\(Int(currentEase))%")
-                    .font(.caption)
-                    .bold()
-                    .foregroundColor(.green)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text("やり易さ")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text("\(Int(currentEase))%")
+                            .font(.caption)
+                            .bold()
+                            .foregroundColor(.gray)
+                    }
+                    
+                    Slider(
+                        value: Binding(
+                            get: { tempEase ?? item.ease },
+                            set: { tempEase = $0 }
+                        ),
+                        in: 0...100,
+                        step: 5,
+                        onEditingChanged: { editing in
+                            if editing {
+                                tempEase = item.ease
+                            } else {
+                                if let finalValue = tempEase {
+                                    item.ease = finalValue
+                                    tempEase = nil
+                                }
+                            }
+                        }
+                    )
+                    .accentColor(.gray)
+                }
             }
             
-            Slider(
-                value: Binding(
-                    get: { tempEase ?? item.ease },
-                    set: { tempEase = $0 }
-                ),
-                in: 0...100,
-                step: 5,
-                onEditingChanged: { editing in
-                    if editing {
-                        tempEase = item.ease
-                    } else {
-                        if let finalValue = tempEase {
-                            item.ease = finalValue
-                            tempEase = nil
-                        }
-                    }
-                }
-            )
-            .accentColor(.green)
-            
-            // --- アクションセクション ---
             Divider()
-                .padding(.vertical, 4)
+                .padding(.vertical, 2)
             
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
@@ -564,7 +577,7 @@ struct ActionRowView: View {
             }
             .buttonStyle(.plain)
         }
-        .padding(.vertical, 2)
+        .padding(2)
     }
 }
 
@@ -615,65 +628,75 @@ struct ItemRowView: View {
                         .strikethrough(item.isCompleted, color: .secondary)
                         .foregroundColor(item.isCompleted ? .secondary : .primary)
                 }
-                
-                Spacer()
-                
-                Text("影響度: \(Int(currentImpact))%")
-                    .font(.subheadline)
-                    .bold()
-                    .foregroundColor(impactColor)
             }
             
-            Slider(
-                value: Binding(
-                    get: { tempImpact ?? item.impact },
-                    set: { tempImpact = $0 }
-                ),
-                in: 0...100,
-                step: 5,
-                onEditingChanged: { editing in
-                    if editing {
-                        tempImpact = item.impact
-                    } else {
-                        if let finalValue = tempImpact {
-                            item.impact = finalValue
-                            tempImpact = nil
-                        }
+            HStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text("影響度")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text("\(Int(currentImpact))%")
+                            .font(.caption)
+                            .bold()
+                            .foregroundColor(impactColor)
                     }
+                    
+                    Slider(
+                        value: Binding(
+                            get: { tempImpact ?? item.impact },
+                            set: { tempImpact = $0 }
+                        ),
+                        in: 0...100,
+                        step: 5,
+                        onEditingChanged: { editing in
+                            if editing {
+                                tempImpact = item.impact
+                            } else {
+                                if let finalValue = tempImpact {
+                                    item.impact = finalValue
+                                    tempImpact = nil
+                                }
+                            }
+                        }
+                    )
+                    .accentColor(impactColor)
                 }
-            )
-            .accentColor(impactColor)
-            
-            HStack {
-                Text("やり易さ")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                Spacer()
-                Text("\(Int(currentEase))%")
-                    .font(.caption)
-                    .bold()
-                    .foregroundColor(.green)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text("やり易さ")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text("\(Int(currentEase))%")
+                            .font(.caption)
+                            .bold()
+                            .foregroundColor(.gray)
+                    }
+                    
+                    Slider(
+                        value: Binding(
+                            get: { tempEase ?? item.ease },
+                            set: { tempEase = $0 }
+                        ),
+                        in: 0...100,
+                        step: 5,
+                        onEditingChanged: { editing in
+                            if editing {
+                                tempEase = item.ease
+                            } else {
+                                if let finalValue = tempEase {
+                                    item.ease = finalValue
+                                    tempEase = nil
+                                }
+                            }
+                        }
+                    )
+                    .accentColor(.gray)
+                }
             }
-            
-            Slider(
-                value: Binding(
-                    get: { tempEase ?? item.ease },
-                    set: { tempEase = $0 }
-                ),
-                in: 0...100,
-                step: 5,
-                onEditingChanged: { editing in
-                    if editing {
-                        tempEase = item.ease
-                    } else {
-                        if let finalValue = tempEase {
-                            item.ease = finalValue
-                            tempEase = nil
-                        }
-                    }
-                }
-            )
-            .accentColor(.green)
         }
         .padding(10)
         .background(
