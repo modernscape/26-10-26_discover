@@ -43,18 +43,18 @@ class Item {
     var isCompleted: Bool
     var isHighlighted: Bool
     
-    // 4つの評価項目（0, 1, 2, 3 の4段階）
+    // 4つの評価項目（0〜4 の5段階）
     var moneyLevel: Int = 0
     var funLevel: Int = 0
-    var skillLevel: Int = 0
-    var easyLevel: Int = 0
+    var easyStartLevel: Int = 0
+    var comfortableLevel: Int = 0
     
     var dream: Dream?
     
     @Relationship(deleteRule: .cascade)
     var actions: [Action] = []
     
-    init(title: String, impact: Double = 50.0, ease: Double = 50.0, merit: String = "", demerit: String = "", isCompleted: Bool = false, isHighlighted: Bool = false, moneyLevel: Int = 0, funLevel: Int = 0, skillLevel: Int = 0, easyLevel: Int = 0) {
+    init(title: String, impact: Double = 50.0, ease: Double = 50.0, merit: String = "", demerit: String = "", isCompleted: Bool = false, isHighlighted: Bool = false, moneyLevel: Int = 0, funLevel: Int = 0, easyStartLevel: Int = 0, comfortableLevel: Int = 0) {
         self.title = title
         self.impact = impact
         self.ease = ease
@@ -64,8 +64,8 @@ class Item {
         self.isHighlighted = isHighlighted
         self.moneyLevel = moneyLevel
         self.funLevel = funLevel
-        self.skillLevel = skillLevel
-        self.easyLevel = easyLevel
+        self.easyStartLevel = easyStartLevel
+        self.comfortableLevel = comfortableLevel
         self.actions = []
     }
 }
@@ -112,13 +112,13 @@ struct ContentView: View {
             currentValue: "35万円"
         )
         
-        let item1 = Item(title: "転職", impact: 80.0, ease: 30.0, merit: "年収アップ確実", demerit: "準備に時間がかかる", isHighlighted: true, moneyLevel: 3, funLevel: 1, skillLevel: 2, easyLevel: 1)
+        let item1 = Item(title: "転職", impact: 80.0, ease: 30.0, merit: "年収アップ確実", demerit: "準備に時間がかかる", isHighlighted: true, moneyLevel: 4, funLevel: 1, easyStartLevel: 2, comfortableLevel: 1)
         item1.actions = [
             Action(title: "履歴書・職務経歴書を作成する", done: true),
             Action(title: "エージェントに登録する", done: false)
         ]
         
-        let item2 = Item(title: "エージェントから受注", impact: 70.0, ease: 60.0, merit: "すぐ始められる", demerit: "単価が変動する", isHighlighted: true, moneyLevel: 2, funLevel: 3, skillLevel: 1, easyLevel: 2)
+        let item2 = Item(title: "エージェントから受注", impact: 70.0, ease: 60.0, merit: "すぐ始められる", demerit: "単価が変動する", isHighlighted: true, moneyLevel: 3, funLevel: 4, easyStartLevel: 1, comfortableLevel: 2)
         let item3 = Item(title: "App Storeで収益化", impact: 30.0, ease: 40.0, merit: "当たれば大きい", demerit: "時間がかかる", isHighlighted: false)
         let item4 = Item(title: "起業", impact: 95.0, ease: 10.0, merit: "リターンが大きい", demerit: "ハイリスク", isHighlighted: false)
         
@@ -283,12 +283,12 @@ struct DreamDetailView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     
-                    // ★ アイコンの説明（大きめサイズ ＆ #222222）
+                    // ★ アイコンの説明
                     HStack(spacing: 16) {
                         LegendItemView(systemImage: "yensign.circle.fill", label: "収入", color: Color(hex: "222222"))
                         LegendItemView(systemImage: "fireworks", label: "ワクワク", color: Color(hex: "222222"))
-                        LegendItemView(systemImage: "brain.filled.head.profile", label: "スキル", color: Color(hex: "222222"))
-                        LegendItemView(systemImage: "figure.mind.and.body", label: "気楽さ", color: Color(hex: "222222"))
+                        LegendItemView(systemImage: "figure.walk", label: "手軽さ", color: Color(hex: "222222"))
+                        LegendItemView(systemImage: "figure.mind.and.body", label: "快適", color: Color(hex: "222222"))
                     }
                     .padding(.top, 4)
                 }
@@ -608,12 +608,12 @@ struct HighlightedItemRowView: View {
                 }
                 .frame(width: UIScreen.main.bounds.width * 0.5)
                 
-                // 右側の空白に4つのアイコンボタン（4段階評価）
+                // 右側の空白に4つのアイコンボタン（5段階評価）
                 HStack(spacing: 8) {
                     ScoreButtonView(title: "収入", systemImage: "yensign.circle.fill", level: $item.moneyLevel)
                     ScoreButtonView(title: "ワクワク", systemImage: "fireworks", level: $item.funLevel)
-                    ScoreButtonView(title: "スキル", systemImage: "brain.filled.head.profile", level: $item.skillLevel)
-                    ScoreButtonView(title: "気楽さ", systemImage: "figure.mind.and.body", level: $item.easyLevel)
+                    ScoreButtonView(title: "手軽さ", systemImage: "figure.walk", level: $item.easyStartLevel)
+                    ScoreButtonView(title: "快適", systemImage: "figure.mind.and.body", level: $item.comfortableLevel)
                 }
                 .frame(maxWidth: .infinity, alignment: .center)
             }
@@ -909,12 +909,12 @@ struct ItemRowView: View {
                 }
                 .frame(width: UIScreen.main.bounds.width * 0.5)
                 
-                // 右側の空白に4つのアイコンボタン（4段階評価）
+                // 右側の空白に4つのアイコンボタン（5段階評価）
                 HStack(spacing: 8) {
                     ScoreButtonView(title: "収入", systemImage: "yensign.circle.fill", level: $item.moneyLevel)
                     ScoreButtonView(title: "ワクワク", systemImage: "fireworks", level: $item.funLevel)
-                    ScoreButtonView(title: "スキル", systemImage: "brain.filled.head.profile", level: $item.skillLevel)
-                    ScoreButtonView(title: "気楽さ", systemImage: "figure.mind.and.body", level: $item.easyLevel)
+                    ScoreButtonView(title: "手軽さ", systemImage: "figure.walk", level: $item.easyStartLevel)
+                    ScoreButtonView(title: "快適", systemImage: "figure.mind.and.body", level: $item.comfortableLevel)
                 }
                 .frame(maxWidth: .infinity, alignment: .center)
             }
@@ -991,7 +991,7 @@ struct ItemRowView: View {
 }
 
 // ==========================================
-// 9. アイコン説明用のヘルパービュー（サイズ拡大 ＆ #222222）
+// 9. アイコン説明用のヘルパービュー
 // ==========================================
 
 struct LegendItemView: View {
@@ -1002,64 +1002,76 @@ struct LegendItemView: View {
     var body: some View {
         HStack(spacing: 5) {
             Image(systemName: systemImage)
-                .font(.system(size: 14)) // アイコンを少し拡大
+                .font(.system(size: 14))
                 .foregroundColor(color)
             Text(label)
-                .font(.system(size: 13, weight: .medium)) // 文字を少し大きくして見やすく
-                .foregroundColor(color) // 指定された #222222
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(color)
         }
     }
 }
 
 // ==========================================
-// 10. 4段階評価ボタン用のコンポーネント
+// 10. 5段階評価ボタン用のコンポーネント
 // ==========================================
 
 struct ScoreButtonView: View {
     let title: String
     let systemImage: String
-    @Binding var level: Int // 0, 1, 2, 3 の4段階
+    @Binding var level: Int // 0, 1, 2, 3, 4 の5段階
     
-    // 4段階のカラー定義
+    // 5段階のカラー定義（4番目に緑 #00AC24 を配置）
     private let grayColor = Color(hex: "6E6E6E")   // レベル0 (△)
     private let yellowColor = Color(hex: "FAD000") // レベル1 (◯)
     private let cyanColor = Color(hex: "00F9F7")   // レベル2 (◎)
-    private let pinkColor = Color(hex: "F84390")   // レベル3 (★)
+    private let greenColor = Color(hex: "00AC24")  // レベル3 (moon.stars)
+    private let pinkColor = Color(hex: "F84390")   // レベル4 (💎)
     
     private var buttonColor: Color {
         switch level {
         case 0: return grayColor
         case 1: return yellowColor
         case 2: return cyanColor
-        case 3: return pinkColor
+        case 3: return greenColor
+        case 4: return pinkColor
         default: return grayColor
         }
     }
     
-    // 4段階の記号表示
+    // 5段階の記号表示（レベル3を "moon.stars" に変更）
     private var levelText: String {
         switch level {
         case 0: return "△"
         case 1: return "◯"
         case 2: return "◎"
-        case 3: return "★"
+        case 3: return "🌙✨" // ※コード内ではテキスト表示ですが、以下のようにImageを使うことも可能です
+        case 4: return "💎"
         default: return ""
         }
     }
     
     var body: some View {
         Button(action: {
-            // タップするたびに 0 → 1 → 2 → 3 → 0 と循環
-            level = (level + 1) % 4
+            // タップするたびに 0 → 1 → 2 → 3 → 4 → 0 と循環
+            level = (level + 1) % 5
         }) {
             VStack(spacing: 2) {
                 Image(systemName: systemImage)
                     .font(.system(size: 16))
                     .foregroundColor(buttonColor)
                 
-                Text(levelText)
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(buttonColor)
+                // レベル3のときはテキストの代わりにSF Symbolsの moon.stars を表示
+                if level == 3 {
+                    Image(systemName: "moon.stars")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(buttonColor)
+                        .frame(height: 12)
+                } else {
+                    Text(levelText)
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(buttonColor)
+                        .frame(height: 12)
+                }
             }
             .frame(width: 28, height: 40)
             .contentShape(Rectangle())
