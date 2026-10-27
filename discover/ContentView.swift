@@ -36,24 +36,36 @@ class Dream {
 @Model
 class Item {
     var title: String
-    var impact: Double
+    var impact: Double // 効力
     var ease: Double
-    var reason: String
+    var merit: String
+    var demerit: String
     var isCompleted: Bool
     var isHighlighted: Bool
+    
+    // 4つの評価項目（0, 1, 2, 3 の4段階）
+    var moneyLevel: Int = 0
+    var funLevel: Int = 0
+    var skillLevel: Int = 0
+    var easyLevel: Int = 0
     
     var dream: Dream?
     
     @Relationship(deleteRule: .cascade)
     var actions: [Action] = []
     
-    init(title: String, impact: Double = 50.0, ease: Double = 50.0, reason: String = "", isCompleted: Bool = false, isHighlighted: Bool = false) {
+    init(title: String, impact: Double = 50.0, ease: Double = 50.0, merit: String = "", demerit: String = "", isCompleted: Bool = false, isHighlighted: Bool = false, moneyLevel: Int = 0, funLevel: Int = 0, skillLevel: Int = 0, easyLevel: Int = 0) {
         self.title = title
         self.impact = impact
         self.ease = ease
-        self.reason = reason
+        self.merit = merit
+        self.demerit = demerit
         self.isCompleted = isCompleted
         self.isHighlighted = isHighlighted
+        self.moneyLevel = moneyLevel
+        self.funLevel = funLevel
+        self.skillLevel = skillLevel
+        self.easyLevel = easyLevel
         self.actions = []
     }
 }
@@ -100,15 +112,15 @@ struct ContentView: View {
             currentValue: "35万円"
         )
         
-        let item1 = Item(title: "転職", impact: 80.0, ease: 30.0, reason: "年収アップ確実だが準備が必要", isHighlighted: true)
+        let item1 = Item(title: "転職", impact: 80.0, ease: 30.0, merit: "年収アップ確実", demerit: "準備に時間がかかる", isHighlighted: true, moneyLevel: 3, funLevel: 1, skillLevel: 2, easyLevel: 1)
         item1.actions = [
             Action(title: "履歴書・職務経歴書を作成する", done: true),
             Action(title: "エージェントに登録する", done: false)
         ]
         
-        let item2 = Item(title: "エージェントから受注", impact: 70.0, ease: 60.0, reason: "すぐ始められる", isHighlighted: true)
-        let item3 = Item(title: "App Storeで収益化", impact: 30.0, ease: 40.0, reason: "当たれば大きいが時間がかかる", isHighlighted: false)
-        let item4 = Item(title: "起業", impact: 95.0, ease: 10.0, reason: "ハイリスク・ハイリターン", isHighlighted: false)
+        let item2 = Item(title: "エージェントから受注", impact: 70.0, ease: 60.0, merit: "すぐ始められる", demerit: "単価が変動する", isHighlighted: true, moneyLevel: 2, funLevel: 3, skillLevel: 1, easyLevel: 2)
+        let item3 = Item(title: "App Storeで収益化", impact: 30.0, ease: 40.0, merit: "当たれば大きい", demerit: "時間がかかる", isHighlighted: false)
+        let item4 = Item(title: "起業", impact: 95.0, ease: 10.0, merit: "リターンが大きい", demerit: "ハイリスク", isHighlighted: false)
         
         defaultDream.items = [item1, item2, item3, item4]
         context.insert(defaultDream)
@@ -156,7 +168,8 @@ struct DreamDetailView: View {
     @State private var newTitle = ""
     @State private var newImpact: Double = 50.0
     @State private var newEase: Double = 50.0
-    @State private var newReason = ""
+    @State private var newMerit = ""
+    @State private var newDemerit = ""
     
     @State private var selectedPhotoItem: PhotosPickerItem? = nil
     
@@ -185,7 +198,7 @@ struct DreamDetailView: View {
             VStack(spacing: 0) {
                 
                 // --- ヘッダー部分 ---
-                VStack(spacing: 14) {
+                VStack(spacing: 12) {
                     HStack(alignment: .center, spacing: 16) {
                         PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
                             if let data = dream.imageData, let uiImage = UIImage(data: data) {
@@ -269,6 +282,15 @@ struct DreamDetailView: View {
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
+                    
+                    // ★ アイコンの説明（大きめサイズ ＆ #222222）
+                    HStack(spacing: 16) {
+                        LegendItemView(systemImage: "yensign.circle.fill", label: "収入", color: Color(hex: "222222"))
+                        LegendItemView(systemImage: "fireworks", label: "ワクワク", color: Color(hex: "222222"))
+                        LegendItemView(systemImage: "brain.filled.head.profile", label: "スキル", color: Color(hex: "222222"))
+                        LegendItemView(systemImage: "figure.mind.and.body", label: "気楽さ", color: Color(hex: "222222"))
+                    }
+                    .padding(.top, 4)
                 }
                 .padding(16)
                 .background(Color(.systemGroupedBackground))
@@ -292,7 +314,7 @@ struct DreamDetailView: View {
                             Section("並び替え基準") {
                                 Button(action: { sortCriterion = .impact }) {
                                     HStack {
-                                        Text("影響度 (Impact)")
+                                        Text("効力 (Impact)")
                                         if sortCriterion == .impact { Image(systemName: "checkmark") }
                                     }
                                 }
@@ -337,16 +359,14 @@ struct DreamDetailView: View {
                             TextField("行動名（例: スキルを学ぶ）", text: $newTitle)
                                 .submitLabel(.done)
                             
-                            TextField("有利な点・不利な点", text: $newReason, axis: .vertical)
+                            TextField("メリット", text: $newMerit, axis: .vertical)
                                 .submitLabel(.done)
-                                .onChange(of: newReason) { _, newValue in
-                                    if newValue.hasSuffix("\n") {
-                                        newReason = String(newValue.dropLast())
-                                    }
-                                }
+                            
+                            TextField("デメリット", text: $newDemerit, axis: .vertical)
+                                .submitLabel(.done)
                             
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("影響度: \(Int(newImpact))%")
+                                Text("効力: \(Int(newImpact))%")
                                 Slider(value: $newImpact, in: 0...100, step: 5)
                             }
                             
@@ -364,10 +384,11 @@ struct DreamDetailView: View {
                         ToolbarItem(placement: .confirmationAction) {
                             Button("追加") {
                                 if !newTitle.isEmpty {
-                                    let item = Item(title: newTitle, impact: newImpact, ease: newEase, reason: newReason)
+                                    let item = Item(title: newTitle, impact: newImpact, ease: newEase, merit: newMerit, demerit: newDemerit)
                                     dream.items.append(item)
                                     newTitle = ""
-                                    newReason = ""
+                                    newMerit = ""
+                                    newDemerit = ""
                                     newImpact = 50.0
                                     newEase = 50.0
                                     isAddingItem = false
@@ -439,7 +460,8 @@ struct HighlightedItemRowView: View {
     @State private var tempEase: Double? = nil
     
     @FocusState private var isTitleFocused: Bool
-    @FocusState private var isReasonFocused: Bool
+    @FocusState private var isMeritFocused: Bool
+    @FocusState private var isDemeritFocused: Bool
     
     @State private var showingDeleteAlert = false
     
@@ -516,10 +538,10 @@ struct HighlightedItemRowView: View {
                 .buttonStyle(.plain)
             }
             
-            // --- 影響度スライダー（幅100%） ---
+            // --- 効力スライダー（幅100%） ---
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text("影響度")
+                    Text("効力")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     Spacer()
@@ -550,8 +572,8 @@ struct HighlightedItemRowView: View {
                 .accentColor(impactColor)
             }
             
-            // --- やり易さスライダー（幅40%） ＆ 右側に TextField (item.reason) ---
-            HStack(alignment: .top, spacing: 12) {
+            // --- やり易さスライダー（幅50%） ＆ 右側の空白に4つの評価ボタン ---
+            HStack(alignment: .top, spacing: 10) {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text("やり易さ")
@@ -584,24 +606,55 @@ struct HighlightedItemRowView: View {
                     )
                     .accentColor(easeColor)
                 }
-                .frame(width: UIScreen.main.bounds.width * 0.4)
+                .frame(width: UIScreen.main.bounds.width * 0.5)
                 
+                // 右側の空白に4つのアイコンボタン（4段階評価）
+                HStack(spacing: 8) {
+                    ScoreButtonView(title: "収入", systemImage: "yensign.circle.fill", level: $item.moneyLevel)
+                    ScoreButtonView(title: "ワクワク", systemImage: "fireworks", level: $item.funLevel)
+                    ScoreButtonView(title: "スキル", systemImage: "brain.filled.head.profile", level: $item.skillLevel)
+                    ScoreButtonView(title: "気楽さ", systemImage: "figure.mind.and.body", level: $item.easyLevel)
+                }
+                .frame(maxWidth: .infinity, alignment: .center)
+            }
+            
+            // --- 下段：左にメリット、右にデメリット ---
+            HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("有利な点・不利な点")
+                    Text("メリット")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
-                    TextField("有利な点・不利な点", text: $item.reason, axis: .vertical)
+                    TextField("メリット", text: $item.merit, axis: .vertical)
                         .textFieldStyle(.roundedBorder)
                         .font(.subheadline)
-                        .focused($isReasonFocused)
-                        .clearButton(text: $item.reason, isFocused: isReasonFocused)
+                        .focused($isMeritFocused)
+                        .clearButton(text: $item.merit, isFocused: isMeritFocused)
                         .submitLabel(.done)
-                        .onChange(of: item.reason) { _, newValue in
-                            // ★ 改行キーが押されて末尾に改行が入ったら自動でフォーカスを外して完了扱いにする
+                        .onChange(of: item.merit) { _, newValue in
                             if newValue.hasSuffix("\n") {
-                                item.reason = String(newValue.dropLast())
-                                isReasonFocused = false
+                                item.merit = String(newValue.dropLast())
+                                isMeritFocused = false
+                            }
+                        }
+                }
+                .frame(maxWidth: .infinity)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("デメリット")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    TextField("デメリット", text: $item.demerit, axis: .vertical)
+                        .textFieldStyle(.roundedBorder)
+                        .font(.subheadline)
+                        .focused($isDemeritFocused)
+                        .clearButton(text: $item.demerit, isFocused: isDemeritFocused)
+                        .submitLabel(.done)
+                        .onChange(of: item.demerit) { _, newValue in
+                            if newValue.hasSuffix("\n") {
+                                item.demerit = String(newValue.dropLast())
+                                isDemeritFocused = false
                             }
                         }
                 }
@@ -730,7 +783,8 @@ struct ItemRowView: View {
     @State private var tempEase: Double? = nil
     
     @FocusState private var isTitleFocused: Bool
-    @FocusState private var isReasonFocused: Bool
+    @FocusState private var isMeritFocused: Bool
+    @FocusState private var isDemeritFocused: Bool
     
     @State private var showingDeleteAlert = false
     
@@ -785,10 +839,10 @@ struct ItemRowView: View {
                 .buttonStyle(.plain)
             }
             
-            // --- 影響度スライダー（幅100%） ---
+            // --- 効力スライダー（幅100%） ---
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text("影響度")
+                    Text("効力")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     Spacer()
@@ -819,8 +873,8 @@ struct ItemRowView: View {
                 .accentColor(impactColor)
             }
             
-            // --- やり易さスライダー（幅40%） ＆ 右側に TextField (item.reason) ---
-            HStack(alignment: .top, spacing: 12) {
+            // --- やり易さスライダー（幅50%） ＆ 右側の空白に4つの評価ボタン ---
+            HStack(alignment: .top, spacing: 10) {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text("やり易さ")
@@ -853,24 +907,55 @@ struct ItemRowView: View {
                     )
                     .accentColor(easeColor)
                 }
-                .frame(width: UIScreen.main.bounds.width * 0.4)
+                .frame(width: UIScreen.main.bounds.width * 0.5)
                 
+                // 右側の空白に4つのアイコンボタン（4段階評価）
+                HStack(spacing: 8) {
+                    ScoreButtonView(title: "収入", systemImage: "yensign.circle.fill", level: $item.moneyLevel)
+                    ScoreButtonView(title: "ワクワク", systemImage: "fireworks", level: $item.funLevel)
+                    ScoreButtonView(title: "スキル", systemImage: "brain.filled.head.profile", level: $item.skillLevel)
+                    ScoreButtonView(title: "気楽さ", systemImage: "figure.mind.and.body", level: $item.easyLevel)
+                }
+                .frame(maxWidth: .infinity, alignment: .center)
+            }
+            
+            // --- 下段：左にメリット、右にデメリット ---
+            HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("有利な点・不利な点")
+                    Text("メリット")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
-                    TextField("有利な点・不利な点", text: $item.reason, axis: .vertical)
+                    TextField("メリット", text: $item.merit, axis: .vertical)
                         .textFieldStyle(.roundedBorder)
                         .font(.subheadline)
-                        .focused($isReasonFocused)
-                        .clearButton(text: $item.reason, isFocused: isReasonFocused)
+                        .focused($isMeritFocused)
+                        .clearButton(text: $item.merit, isFocused: isMeritFocused)
                         .submitLabel(.done)
-                        .onChange(of: item.reason) { _, newValue in
-                            // ★ 改行キーが押されて末尾に改行が入ったら自動でフォーカスを外して完了扱いにする
+                        .onChange(of: item.merit) { _, newValue in
                             if newValue.hasSuffix("\n") {
-                                item.reason = String(newValue.dropLast())
-                                isReasonFocused = false
+                                item.merit = String(newValue.dropLast())
+                                isMeritFocused = false
+                            }
+                        }
+                }
+                .frame(maxWidth: .infinity)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("デメリット")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    TextField("デメリット", text: $item.demerit, axis: .vertical)
+                        .textFieldStyle(.roundedBorder)
+                        .font(.subheadline)
+                        .focused($isDemeritFocused)
+                        .clearButton(text: $item.demerit, isFocused: isDemeritFocused)
+                        .submitLabel(.done)
+                        .onChange(of: item.demerit) { _, newValue in
+                            if newValue.hasSuffix("\n") {
+                                item.demerit = String(newValue.dropLast())
+                                isDemeritFocused = false
                             }
                         }
                 }
@@ -906,7 +991,99 @@ struct ItemRowView: View {
 }
 
 // ==========================================
-// 9. フォーカス中のみ表示されるクリアボタン拡張
+// 9. アイコン説明用のヘルパービュー（サイズ拡大 ＆ #222222）
+// ==========================================
+
+struct LegendItemView: View {
+    let systemImage: String
+    let label: String
+    let color: Color
+    
+    var body: some View {
+        HStack(spacing: 5) {
+            Image(systemName: systemImage)
+                .font(.system(size: 14)) // アイコンを少し拡大
+                .foregroundColor(color)
+            Text(label)
+                .font(.system(size: 13, weight: .medium)) // 文字を少し大きくして見やすく
+                .foregroundColor(color) // 指定された #222222
+        }
+    }
+}
+
+// ==========================================
+// 10. 4段階評価ボタン用のコンポーネント
+// ==========================================
+
+struct ScoreButtonView: View {
+    let title: String
+    let systemImage: String
+    @Binding var level: Int // 0, 1, 2, 3 の4段階
+    
+    // 4段階のカラー定義
+    private let grayColor = Color(hex: "6E6E6E")   // レベル0 (△)
+    private let yellowColor = Color(hex: "FAD000") // レベル1 (◯)
+    private let cyanColor = Color(hex: "00F9F7")   // レベル2 (◎)
+    private let pinkColor = Color(hex: "F84390")   // レベル3 (★)
+    
+    private var buttonColor: Color {
+        switch level {
+        case 0: return grayColor
+        case 1: return yellowColor
+        case 2: return cyanColor
+        case 3: return pinkColor
+        default: return grayColor
+        }
+    }
+    
+    // 4段階の記号表示
+    private var levelText: String {
+        switch level {
+        case 0: return "△"
+        case 1: return "◯"
+        case 2: return "◎"
+        case 3: return "★"
+        default: return ""
+        }
+    }
+    
+    var body: some View {
+        Button(action: {
+            // タップするたびに 0 → 1 → 2 → 3 → 0 と循環
+            level = (level + 1) % 4
+        }) {
+            VStack(spacing: 2) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 16))
+                    .foregroundColor(buttonColor)
+                
+                Text(levelText)
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(buttonColor)
+            }
+            .frame(width: 28, height: 40)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// Hexカラーを扱うための拡張
+extension Color {
+    init(hex: String) {
+        let scanner = Scanner(string: hex)
+        _ = scanner.scanString("#")
+        var rgbValue: UInt64 = 0
+        scanner.scanHexInt64(&rgbValue)
+        let red = Double((rgbValue & 0xFF0000) >> 16) / 255.0
+        let green = Double((rgbValue & 0x00FF00) >> 8) / 255.0
+        let blue = Double(rgbValue & 0x0000FF) / 255.0
+        self.init(red: red, green: green, blue: blue)
+    }
+}
+
+// ==========================================
+// 11. フォーカス中のみ表示されるクリアボタン拡張
 // ==========================================
 
 extension View {
