@@ -36,25 +36,26 @@ class Dream {
 @Model
 class Item {
     var title: String
-    var impact: Double // 効力
+    var impact: Double // 追い風力
     var ease: Double
     var merit: String
     var demerit: String
     var isCompleted: Bool
-    var isHighlighted: Bool
+    var isHighlighted: Bool // 神風フラグ
     
-    // 4つの評価項目（0〜4 の5段階）
+    // 5つの評価項目（0〜5 の6段階）
     var moneyLevel: Int = 0
     var funLevel: Int = 0
-    var easyStartLevel: Int = 0
+    var contributionLevel: Int = 0
     var comfortableLevel: Int = 0
+    var easyStartLevel: Int = 0
     
     var dream: Dream?
     
     @Relationship(deleteRule: .cascade)
     var actions: [Action] = []
     
-    init(title: String, impact: Double = 50.0, ease: Double = 50.0, merit: String = "", demerit: String = "", isCompleted: Bool = false, isHighlighted: Bool = false, moneyLevel: Int = 0, funLevel: Int = 0, easyStartLevel: Int = 0, comfortableLevel: Int = 0) {
+    init(title: String, impact: Double = 50.0, ease: Double = 50.0, merit: String = "", demerit: String = "", isCompleted: Bool = false, isHighlighted: Bool = false, moneyLevel: Int = 0, funLevel: Int = 0, contributionLevel: Int = 0, comfortableLevel: Int = 0, easyStartLevel: Int = 0) {
         self.title = title
         self.impact = impact
         self.ease = ease
@@ -64,8 +65,9 @@ class Item {
         self.isHighlighted = isHighlighted
         self.moneyLevel = moneyLevel
         self.funLevel = funLevel
-        self.easyStartLevel = easyStartLevel
+        self.contributionLevel = contributionLevel
         self.comfortableLevel = comfortableLevel
+        self.easyStartLevel = easyStartLevel
         self.actions = []
     }
 }
@@ -105,24 +107,48 @@ struct ContentView: View {
     }
     
     private func setupInitialData(context: ModelContext) {
+//        let defaultDream = Dream(
+//            goalTitle: "月収",
+//            goalValue: "100万円",
+//            currentTitle: "月収",
+//            currentValue: "35万円"
+//        )
+        
         let defaultDream = Dream(
-            goalTitle: "月収",
-            goalValue: "100万円",
-            currentTitle: "月収",
-            currentValue: "35万円"
+            goalTitle: "ライフワーク",
+            goalValue: "起業",
+            currentTitle: "仕事",
+            currentValue: "会社員"
         )
         
-        let item1 = Item(title: "転職", impact: 80.0, ease: 30.0, merit: "年収アップ確実", demerit: "準備に時間がかかる", isHighlighted: true, moneyLevel: 4, funLevel: 1, easyStartLevel: 2, comfortableLevel: 1)
+//        let item1 = Item(title: "転職", impact: 80.0, ease: 30.0, merit: "年収アップ確実", demerit: "準備に時間がかかる", isHighlighted: false, moneyLevel: 4, funLevel: 1, contributionLevel: 3, comfortableLevel: 1, easyStartLevel: 2)
+//        item1.actions = [
+//            Action(title: "履歴書・職務経歴書を作成する", done: true),
+//            Action(title: "エージェントに登録する", done: false)
+//        ]
+        
+        let item1 = Item(title: "世の中の問題に目を向ける", impact: 90.0, ease: 30.0, merit: "人の役に立てる！", demerit: "すでに他の人が気づいてる？", isHighlighted: true, moneyLevel: 4, funLevel: 4, contributionLevel: 5, comfortableLevel: 2, easyStartLevel: 1)
         item1.actions = [
-            Action(title: "履歴書・職務経歴書を作成する", done: true),
-            Action(title: "エージェントに登録する", done: false)
+            Action(title: "人にはどんな悩み・苦しみがあるか観察する", done: true),
+            Action(title: "不満・不都合・不具合・不便・不平等・不条理、に目を向ける", done: false)
         ]
         
-        let item2 = Item(title: "エージェントから受注", impact: 70.0, ease: 60.0, merit: "すぐ始められる", demerit: "単価が変動する", isHighlighted: true, moneyLevel: 3, funLevel: 4, easyStartLevel: 1, comfortableLevel: 2)
-        let item3 = Item(title: "App Storeで収益化", impact: 30.0, ease: 40.0, merit: "当たれば大きい", demerit: "時間がかかる", isHighlighted: false)
-        let item4 = Item(title: "起業", impact: 95.0, ease: 10.0, merit: "リターンが大きい", demerit: "ハイリスク", isHighlighted: false)
+        let item2 = Item(title: "自分の好きなことを探究する", impact: 70.0, ease: 80.0, merit: "楽しい✨✨", demerit: "それでお金になるかは分からない。。", isHighlighted: false, moneyLevel: 3, funLevel: 5, contributionLevel: 3, comfortableLevel: 5, easyStartLevel: 4)
+        item1.actions = [
+            Action(title: "お金を払っててもしたいことは何か？", done: true),
+            Action(title: "突然仕事が休みになったら何をする？", done: false)
+        ]
         
-        defaultDream.items = [item1, item2, item3, item4]
+        
+        //
+        
+//
+//        let item2 = Item(title: "エージェントから受注", impact: 70.0, ease: 60.0, merit: "すぐ始められる", demerit: "単価が変動する", isHighlighted: true, moneyLevel: 3, funLevel: 4, contributionLevel: 0, comfortableLevel: 2, easyStartLevel: 1)
+//        let item3 = Item(title: "App Storeで収益化", impact: 30.0, ease: 40.0, merit: "当たれば大きい", demerit: "時間がかかる", isHighlighted: false)
+//        let item4 = Item(title: "起業", impact: 95.0, ease: 10.0, merit: "リターンが大きい", demerit: "ハイリスク", isHighlighted: false)
+        
+        defaultDream.items = [item1, item2]
+//        defaultDream.items = [item1, item2, item3, item4]
         context.insert(defaultDream)
     }
 }
@@ -144,7 +170,7 @@ struct MainTabView: View {
             
             HighlightedItemsView(dream: dream)
                 .tabItem {
-                    Label("有力候補", systemImage: "star.fill")
+                    Label("神風", systemImage: "flame.fill")
                 }
         }
     }
@@ -198,20 +224,20 @@ struct DreamDetailView: View {
             VStack(spacing: 0) {
                 
                 // --- ヘッダー部分 ---
-                VStack(spacing: 12) {
+                VStack(spacing: 8) {
                     HStack(alignment: .center, spacing: 16) {
                         PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
                             if let data = dream.imageData, let uiImage = UIImage(data: data) {
                                 Image(uiImage: uiImage)
                                     .resizable()
                                     .scaledToFill()
-                                    .frame(width: 80, height: 80)
+                                    .frame(width: 98, height: 98)
                                     .clipped()
                             } else {
                                 ZStack {
                                     Rectangle()
                                         .fill(Color(.systemGray5))
-                                        .frame(width: 80, height: 80)
+                                        .frame(width: 98, height: 98)
                                     Image(systemName: "photo.badge.plus")
                                         .font(.title2)
                                         .foregroundColor(.secondary)
@@ -226,9 +252,9 @@ struct DreamDetailView: View {
                             }
                         }
                         
-                        VStack(spacing: 10) {
+                        VStack(spacing: 8) {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("Dream Goal")
+                                Text("DREAM GOAL（上がり）")
                                     .font(.caption2)
                                     .foregroundColor(.secondary)
                                     .textCase(.uppercase)
@@ -236,6 +262,8 @@ struct DreamDetailView: View {
                                 HStack(spacing: 8) {
                                     TextField("項目", text: $dream.goalTitle)
                                         .textFieldStyle(.roundedBorder)
+                                        .lineLimit(1) // 1行に制限
+                                        .minimumScaleFactor(0.5) // 枠からはみ出る場合に元の文字サイズの最大50%まで自動縮小
                                         .focused($focusedField, equals: .goalTitle)
                                         .clearButton(text: $dream.goalTitle, isFocused: focusedField == .goalTitle)
                                         .submitLabel(.done)
@@ -248,13 +276,15 @@ struct DreamDetailView: View {
                                         .clearButton(text: $dream.goalValue, isFocused: focusedField == .goalValue)
                                         .font(.title3)
                                         .bold()
+                                        .lineLimit(1) // 1行に制限
+                                        .minimumScaleFactor(0.5) // 枠からはみ出る場合に元の文字サイズの最大50%まで自動縮小
                                         .submitLabel(.done)
                                         .onSubmit { focusedField = nil }
                                 }
                             }
                             
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("Current Status")
+                                Text("CURRENT STATUS（現状）")
                                     .font(.caption2)
                                     .foregroundColor(.red)
                                     .textCase(.uppercase)
@@ -262,6 +292,8 @@ struct DreamDetailView: View {
                                 HStack(spacing: 8) {
                                     TextField("項目", text: $dream.currentTitle)
                                         .textFieldStyle(.roundedBorder)
+                                        .lineLimit(1) // 1行に制限
+                                        .minimumScaleFactor(0.5) // 枠からはみ出る場合に元の文字サイズの最大50%まで自動縮小
                                         .focused($focusedField, equals: .currentTitle)
                                         .clearButton(text: $dream.currentTitle, isFocused: focusedField == .currentTitle)
                                         .foregroundColor(.red)
@@ -271,6 +303,8 @@ struct DreamDetailView: View {
                                     
                                     TextField("値", text: $dream.currentValue)
                                         .textFieldStyle(.roundedBorder)
+                                        .lineLimit(1) // 1行に制限
+                                        .minimumScaleFactor(0.5) // 枠からはみ出る場合に元の文字サイズの最大50%まで自動縮小
                                         .focused($focusedField, equals: .currentValue)
                                         .clearButton(text: $dream.currentValue, isFocused: focusedField == .currentValue)
                                         .font(.subheadline)
@@ -283,27 +317,47 @@ struct DreamDetailView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     
-                    // ★ アイコンの説明
-                    HStack(spacing: 16) {
-                        LegendItemView(systemImage: "yensign.circle.fill", label: "収入", color: Color(hex: "222222"))
-                        LegendItemView(systemImage: "fireworks", label: "ワクワク", color: Color(hex: "222222"))
-                        LegendItemView(systemImage: "figure.walk", label: "手軽さ", color: Color(hex: "222222"))
-                        LegendItemView(systemImage: "figure.mind.and.body", label: "快適", color: Color(hex: "222222"))
+                    // ★ アイコンの説明 ＋ レベル色凡例（1〜5のみ）
+                    VStack(spacing: 6) {
+                        HStack(spacing: 12) {
+                            LegendItemView(systemImage: "yensign.circle.fill", label: "収入", color: Color("Legend Item Color"))
+                            LegendItemView(systemImage: "fireworks", label: "ワクワク", color: Color("Legend Item Color"))
+                            LegendItemView(systemImage: "apple.meditate", label: "貢献", color: Color("Legend Item Color"))
+                            LegendItemView(systemImage: "figure.mind.and.body", label: "快適", color: Color("Legend Item Color"))
+                            LegendItemView(systemImage: "figure.walk", label: "手軽さ", color: Color("Legend Item Color"))
+                        }
+                        
+//                        HStack(spacing: 6) {
+//                            LevelBadgeView(level: 1, text: "1")
+//                            LevelBadgeView(level: 2, text: "2")
+//                            LevelBadgeView(level: 3, text: "3")
+//                            LevelBadgeView(level: 4, text: "4")
+//                            LevelBadgeView(level: 5, text: "5")
+//                        }
                     }
-                    .padding(.top, 4)
+                    .padding(.top, 2)
                 }
-                .padding(16)
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .padding(.bottom, 8)
                 .background(Color(.systemGroupedBackground))
                 
-                List {
-                    ForEach(sortedItems) { item in
-                        ItemRowView(item: item, dream: dream)
+                // --- スクロールビュー ---
+                ScrollView {
+                    LazyVStack(spacing: 12) {
+                        ForEach(sortedItems) { item in
+                            ItemRowView(item: item, dream: dream)
+                                .padding(12)
+                                .background(item.isHighlighted ? Color("Highlight Item") : Color(.systemBackground))
+                                .cornerRadius(10)
+                                .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
+                        }
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 6)
+                    .padding(.bottom, 20)
                 }
-                .listStyle(.insetGrouped)
-                .animation(.easeInOut(duration: 0.3), value: sortedItems.map { $0.id })
-                .animation(.easeInOut(duration: 0.3), value: sortCriterion)
-                .animation(.easeInOut(duration: 0.3), value: isDescending)
+                .background(Color(.systemGroupedBackground))
             }
             .navigationTitle("Dream")
             .navigationBarTitleDisplayMode(.inline)
@@ -314,7 +368,7 @@ struct DreamDetailView: View {
                             Section("並び替え基準") {
                                 Button(action: { sortCriterion = .impact }) {
                                     HStack {
-                                        Text("効力 (Impact)")
+                                        Text("追い風力 (Impact)")
                                         if sortCriterion == .impact { Image(systemName: "checkmark") }
                                     }
                                 }
@@ -360,13 +414,11 @@ struct DreamDetailView: View {
                                 .submitLabel(.done)
                             
                             TextField("メリット", text: $newMerit, axis: .vertical)
-                                .submitLabel(.done)
                             
                             TextField("デメリット", text: $newDemerit, axis: .vertical)
-                                .submitLabel(.done)
                             
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("効力: \(Int(newImpact))%")
+                                Text("追い風力: \(Int(newImpact))%")
                                 Slider(value: $newImpact, in: 0...100, step: 5)
                             }
                             
@@ -401,19 +453,10 @@ struct DreamDetailView: View {
             }
         }
     }
-    
-    private func deleteItems(at offsets: IndexSet) {
-        for index in offsets {
-            let itemToDelete = sortedItems[index]
-            if let originalIndex = dream.items.firstIndex(where: { $0.id == itemToDelete.id }) {
-                dream.items.remove(at: originalIndex)
-            }
-        }
-    }
 }
 
 // ==========================================
-// 5. 「有力候補」タブのビュー
+// 5. 「神風」タブのビュー
 // ==========================================
 
 struct HighlightedItemsView: View {
@@ -428,27 +471,34 @@ struct HighlightedItemsView: View {
             Group {
                 if highlightedItems.isEmpty {
                     ContentUnavailableView(
-                        "有力候補がありません",
-                        systemImage: "star",
-                        description: Text("「追い風アクション」タブで右上の星ボタンを押して星をつけると、ここに表示されます。")
+                        "神風アクションがありません",
+                        systemImage: "flame",
+                        description: Text("「追い風アクション」タブで炎ボタンを押して指定すると、ここに表示されます。")
                     )
                 } else {
-                    List {
-                        ForEach(Array(highlightedItems.enumerated()), id: \.element.id) { index, item in
-                            HighlightedItemRowView(index: index + 1, item: item, dream: dream)
+                    ScrollView {
+                        LazyVStack(spacing: 12) {
+                            ForEach(Array(highlightedItems.enumerated()), id: \.element.id) { index, item in
+                                HighlightedItemRowView(index: index + 1, item: item, dream: dream)
+                                    .padding(12)
+                                    .background(Color(.systemBackground))
+                                    .cornerRadius(10)
+                                    .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
+                            }
                         }
+                        .padding(16)
                     }
-                    .listStyle(.insetGrouped)
+                    .background(Color(.systemGroupedBackground))
                 }
             }
-            .navigationTitle("有力候補")
+            .navigationTitle("神風")
             .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
 
 // ==========================================
-// 6. 「有力候補」タブ専用の行ビュー
+// 6. 「神風」タブ専用の行ビュー
 // ==========================================
 
 struct HighlightedItemRowView: View {
@@ -464,6 +514,7 @@ struct HighlightedItemRowView: View {
     @FocusState private var isDemeritFocused: Bool
     
     @State private var showingDeleteAlert = false
+    @State private var showingResetAlert = false
     
     private var currentImpact: Double {
         tempImpact ?? item.impact
@@ -479,8 +530,13 @@ struct HighlightedItemRowView: View {
     }
     
     private var easeColor: Color {
-        let brightness = 0.85 - (currentEase / 100.0) * 0.75
-        return Color(white: brightness)
+        let opacity = max(0.15, currentEase / 100.0)
+        return Color("EaseSliderTint").opacity(opacity)
+    }
+    
+    // すべての評価が0かどうかを判定
+    private var areAllLevelsZero: Bool {
+        item.moneyLevel == 0 && item.funLevel == 0 && item.contributionLevel == 0 && item.comfortableLevel == 0 && item.easyStartLevel == 0
     }
     
     private func encircledSystemImage(for number: Int) -> String {
@@ -526,29 +582,27 @@ struct HighlightedItemRowView: View {
                     .strikethrough(item.isCompleted, color: .secondary)
                     .foregroundColor(item.isCompleted ? .secondary : .primary)
                 
-                Button(action: {
-                    withAnimation {
-                        item.isHighlighted.toggle()
-                    }
-                }) {
-                    Image(systemName: item.isHighlighted ? "star.fill" : "star")
-                        .foregroundColor(item.isHighlighted ? .orange : .secondary)
-                        .font(.title3)
-                }
-                .buttonStyle(.plain)
+                FlameToggleButton(isHighlighted: $item.isHighlighted)
             }
             
-            // --- 効力スライダー（幅100%） ---
+            // --- 追い風力スライダー ---
             VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text("効力")
+                HStack(spacing: 4) {
+                    Text("追い風力")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Image(systemName: "wind")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     Spacer()
                     Text("\(Int(currentImpact))%")
-                        .font(.caption)
+                        .font(.caption2)
                         .bold()
-                        .foregroundColor(impactColor)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(impactColor)
+                        .clipShape(Capsule())
                 }
                 
                 Slider(
@@ -572,11 +626,14 @@ struct HighlightedItemRowView: View {
                 .accentColor(impactColor)
             }
             
-            // --- やり易さスライダー（幅50%） ＆ 右側の空白に4つの評価ボタン ---
-            HStack(alignment: .top, spacing: 10) {
+            // --- やり易さスライダー ＆ セグメント評価 ＋ マス専用の真横・上下中央リセットボタン（アニメーション対応） ---
+            HStack(alignment: .top, spacing: 8) {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text("やり易さ")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Image(systemName: "hand.thumbsup")
                             .font(.caption)
                             .foregroundColor(.secondary)
                         Spacer()
@@ -606,19 +663,48 @@ struct HighlightedItemRowView: View {
                     )
                     .accentColor(easeColor)
                 }
-                .frame(width: UIScreen.main.bounds.width * 0.5)
+                .frame(width: UIScreen.main.bounds.width * 0.52)
                 
-                // 右側の空白に4つのアイコンボタン（5段階評価）
-                HStack(spacing: 8) {
-                    ScoreButtonView(title: "収入", systemImage: "yensign.circle.fill", level: $item.moneyLevel)
-                    ScoreButtonView(title: "ワクワク", systemImage: "fireworks", level: $item.funLevel)
-                    ScoreButtonView(title: "手軽さ", systemImage: "figure.walk", level: $item.easyStartLevel)
-                    ScoreButtonView(title: "快適", systemImage: "figure.mind.and.body", level: $item.comfortableLevel)
+                Spacer()
+                
+                // 評価マス群 ＋ 正方形マスの高さ(15pt)の中心に合わせたリセットボタン（アニメーション付き）
+                HStack(alignment: .top, spacing: 2) {
+                    HStack(spacing: 1.5) {
+                        SegmentScoreButton(systemImage: "yensign.circle.fill", level: $item.moneyLevel)
+                        SegmentScoreButton(systemImage: "fireworks", level: $item.funLevel)
+                        SegmentScoreButton(systemImage: "apple.meditate", level: $item.contributionLevel)
+                        SegmentScoreButton(systemImage: "figure.mind.and.body", level: $item.comfortableLevel)
+                        SegmentScoreButton(systemImage: "figure.walk", level: $item.easyStartLevel)
+                    }
+                    
+                    Button(action: {
+                        showingResetAlert = true
+                    }) {
+                        Image(systemName: "xmark.circle")
+                            .font(.system(size: 13))
+                            .foregroundColor(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .frame(width: 18, height: 15) // マスの高さ(15pt)に合わせる
+                    .opacity(areAllLevelsZero ? 0.0 : 1.0)
+                    .scaleEffect(areAllLevelsZero ? 0.5 : 1.0) // 縮小・拡大の演出
+                    .disabled(areAllLevelsZero)
+                    .contentShape(Rectangle())
+                    .animation(.easeInOut(duration: 0.2), value: areAllLevelsZero) // スムーズなアニメーション
+                    .alert("評価をリセットしますか？", isPresented: $showingResetAlert) {
+                        Button("キャンセル", role: .cancel) { }
+                        Button("リセット", role: .destructive) {
+                            item.moneyLevel = 0
+                            item.funLevel = 0
+                            item.contributionLevel = 0
+                            item.comfortableLevel = 0
+                            item.easyStartLevel = 0
+                        }
+                    }
                 }
-                .frame(maxWidth: .infinity, alignment: .center)
             }
             
-            // --- 下段：左にメリット、右にデメリット ---
+            // --- メリット・デメリット ---
             HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("メリット")
@@ -674,10 +760,8 @@ struct HighlightedItemRowView: View {
                     Spacer()
                     
                     Button(action: {
-                        withAnimation {
-                            let newAction = Action(title: "")
-                            item.actions.append(newAction)
-                        }
+                        let newAction = Action(title: "")
+                        item.actions.append(newAction)
                     }) {
                         Label("アクション追加", systemImage: "plus.circle.fill")
                             .font(.caption)
@@ -702,14 +786,13 @@ struct HighlightedItemRowView: View {
                 }
             }
         }
-        .padding(10)
-        .padding(.vertical, 2)
+        .padding(.vertical, 4)
         .opacity(item.isCompleted ? 0.6 : 1.0)
         .contentShape(Rectangle())
         .onLongPressGesture {
             showingDeleteAlert = true
         }
-        .alert("アイテムの削除", isPresented: $showingDeleteAlert) {
+        .alert("\(item.title.isEmpty ? "無題" : item.title)の削除", isPresented: $showingDeleteAlert) {
             Button("キャンセル", role: .cancel) { }
             Button("削除", role: .destructive) {
                 if let index = dream.items.firstIndex(where: { $0.id == item.id }) {
@@ -787,6 +870,7 @@ struct ItemRowView: View {
     @FocusState private var isDemeritFocused: Bool
     
     @State private var showingDeleteAlert = false
+    @State private var showingResetAlert = false
     
     private var currentImpact: Double {
         tempImpact ?? item.impact
@@ -802,8 +886,13 @@ struct ItemRowView: View {
     }
     
     private var easeColor: Color {
-        let brightness = 0.85 - (currentEase / 100.0) * 0.75
-        return Color(white: brightness)
+        let opacity = max(0.15, currentEase / 100.0)
+        return Color("EaseSliderTint").opacity(opacity)
+    }
+    
+    // すべての評価が0かどうかを判定
+    private var areAllLevelsZero: Bool {
+        item.moneyLevel == 0 && item.funLevel == 0 && item.contributionLevel == 0 && item.comfortableLevel == 0 && item.easyStartLevel == 0
     }
     
     var body: some View {
@@ -827,29 +916,27 @@ struct ItemRowView: View {
                     .strikethrough(item.isCompleted, color: .secondary)
                     .foregroundColor(item.isCompleted ? .secondary : .primary)
                 
-                Button(action: {
-                    withAnimation {
-                        item.isHighlighted.toggle()
-                    }
-                }) {
-                    Image(systemName: item.isHighlighted ? "star.fill" : "star")
-                        .foregroundColor(item.isHighlighted ? .orange : .secondary)
-                        .font(.title3)
-                }
-                .buttonStyle(.plain)
+                FlameToggleButton(isHighlighted: $item.isHighlighted)
             }
             
-            // --- 効力スライダー（幅100%） ---
+            // --- 追い風力スライダー ---
             VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text("効力")
+                HStack(spacing: 4) {
+                    Text("追い風力")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Image(systemName: "wind")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     Spacer()
                     Text("\(Int(currentImpact))%")
-                        .font(.caption)
+                        .font(.caption2)
                         .bold()
-                        .foregroundColor(impactColor)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(impactColor)
+                        .clipShape(Capsule())
                 }
                 
                 Slider(
@@ -873,11 +960,14 @@ struct ItemRowView: View {
                 .accentColor(impactColor)
             }
             
-            // --- やり易さスライダー（幅50%） ＆ 右側の空白に4つの評価ボタン ---
-            HStack(alignment: .top, spacing: 10) {
+            // --- やり易さスライダー ＆ セグメント評価 ＋ マス専用の真横・上下中央リセットボタン（アニメーション対応） ---
+            HStack(alignment: .top, spacing: 8) {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text("やり易さ")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Image(systemName: "hand.thumbsup")
                             .font(.caption)
                             .foregroundColor(.secondary)
                         Spacer()
@@ -907,19 +997,48 @@ struct ItemRowView: View {
                     )
                     .accentColor(easeColor)
                 }
-                .frame(width: UIScreen.main.bounds.width * 0.5)
+                .frame(width: UIScreen.main.bounds.width * 0.52)
                 
-                // 右側の空白に4つのアイコンボタン（5段階評価）
-                HStack(spacing: 8) {
-                    ScoreButtonView(title: "収入", systemImage: "yensign.circle.fill", level: $item.moneyLevel)
-                    ScoreButtonView(title: "ワクワク", systemImage: "fireworks", level: $item.funLevel)
-                    ScoreButtonView(title: "手軽さ", systemImage: "figure.walk", level: $item.easyStartLevel)
-                    ScoreButtonView(title: "快適", systemImage: "figure.mind.and.body", level: $item.comfortableLevel)
+                Spacer()
+                
+                // 評価マス群 ＋ 正方形マスの高さ(15pt)の中心に合わせたリセットボタン（アニメーション付き）
+                HStack(alignment: .top, spacing: 2) {
+                    HStack(spacing: 1.5) {
+                        SegmentScoreButton(systemImage: "yensign.circle.fill", level: $item.moneyLevel)
+                        SegmentScoreButton(systemImage: "fireworks", level: $item.funLevel)
+                        SegmentScoreButton(systemImage: "apple.meditate", level: $item.contributionLevel)
+                        SegmentScoreButton(systemImage: "figure.mind.and.body", level: $item.comfortableLevel)
+                        SegmentScoreButton(systemImage: "figure.walk", level: $item.easyStartLevel)
+                    }
+                    
+                    Button(action: {
+                        showingResetAlert = true
+                    }) {
+                        Image(systemName: "xmark.circle")
+                            .font(.system(size: 13))
+                            .foregroundColor(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .frame(width: 18, height: 15) // マスの高さ(15pt)に合わせる
+                    .opacity(areAllLevelsZero ? 0.0 : 1.0)
+                    .scaleEffect(areAllLevelsZero ? 0.5 : 1.0) // 縮小・拡大の演出
+                    .disabled(areAllLevelsZero)
+                    .contentShape(Rectangle())
+                    .animation(.easeInOut(duration: 0.2), value: areAllLevelsZero) // スムーズなアニメーション
+                    .alert("評価をリセットしますか？", isPresented: $showingResetAlert) {
+                        Button("キャンセル", role: .cancel) { }
+                        Button("リセット", role: .destructive) {
+                            item.moneyLevel = 0
+                            item.funLevel = 0
+                            item.contributionLevel = 0
+                            item.comfortableLevel = 0
+                            item.easyStartLevel = 0
+                        }
+                    }
                 }
-                .frame(maxWidth: .infinity, alignment: .center)
             }
             
-            // --- 下段：左にメリット、右にデメリット ---
+            // --- メリット・デメリット ---
             HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("メリット")
@@ -962,22 +1081,13 @@ struct ItemRowView: View {
                 .frame(maxWidth: .infinity)
             }
         }
-        .padding(10)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(item.isHighlighted ? Color.orange.opacity(0.08) : Color.clear)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(item.isHighlighted ? Color.orange.opacity(0.5) : Color.clear, lineWidth: 1.5)
-        )
-        .padding(.vertical, 2)
+        .padding(.vertical, 4)
         .opacity(item.isCompleted ? 0.6 : 1.0)
         .contentShape(Rectangle())
         .onLongPressGesture {
             showingDeleteAlert = true
         }
-        .alert("アイテムの削除", isPresented: $showingDeleteAlert) {
+        .alert("\(item.title.isEmpty ? "無題" : item.title)の削除", isPresented: $showingDeleteAlert) {
             Button("キャンセル", role: .cancel) { }
             Button("削除", role: .destructive) {
                 if let index = dream.items.firstIndex(where: { $0.id == item.id }) {
@@ -991,6 +1101,71 @@ struct ItemRowView: View {
 }
 
 // ==========================================
+// 8.5 炎アイコン（X風キラリ・パーティクルエフェクト付き・FlameTintアセット対応）
+// ==========================================
+
+struct FlameToggleButton: View {
+    @Binding var isHighlighted: Bool
+    @State private var particleID = 0
+    
+    var body: some View {
+        Button(action: {
+            if !isHighlighted {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
+                    isHighlighted = true
+                }
+                particleID += 1
+            } else {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isHighlighted = false
+                }
+            }
+        }) {
+            ZStack {
+                FlameParticlesView()
+                    .id(particleID)
+                
+                Image(systemName: isHighlighted ? "flame.fill" : "flame")
+                    .foregroundColor(isHighlighted ? Color("FlameTint") : .secondary)
+                    .font(.title3)
+            }
+            .frame(width: 30, height: 30)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+struct FlameParticlesView: View {
+    @State private var progress: CGFloat = 0.0
+    
+    var body: some View {
+        ZStack {
+            ForEach(0..<6, id: \.self) { i in
+                Circle()
+                    .fill(Color("FlameTint"))
+                    .frame(width: 5, height: 5)
+                    .offset(particleOffset(for: i, progress: progress))
+                    .opacity(Double(1.0 - progress))
+                    .scaleEffect(0.5 + progress * 1.0)
+            }
+        }
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.4)) {
+                progress = 1.0
+            }
+        }
+    }
+    
+    private func particleOffset(for index: Int, progress: CGFloat) -> CGSize {
+        let angle = Double(index) * (Double.pi / 3.0)
+        let distance: Double = 22.0 * Double(progress)
+        let x = cos(angle) * distance
+        let y = sin(angle) * distance
+        return CGSize(width: x, height: y)
+    }
+}
+
+// ==========================================
 // 9. アイコン説明用のヘルパービュー
 // ==========================================
 
@@ -1000,97 +1175,81 @@ struct LegendItemView: View {
     let color: Color
     
     var body: some View {
-        HStack(spacing: 5) {
+        HStack(spacing: 3) {
             Image(systemName: systemImage)
-                .font(.system(size: 14))
+                .font(.system(size: 12))
                 .foregroundColor(color)
             Text(label)
-                .font(.system(size: 13, weight: .medium))
+                .font(.system(size: 11, weight: .medium))
                 .foregroundColor(color)
         }
     }
 }
 
-// ==========================================
-// 10. 5段階評価ボタン用のコンポーネント
-// ==========================================
-
-struct ScoreButtonView: View {
-    let title: String
-    let systemImage: String
-    @Binding var level: Int // 0, 1, 2, 3, 4 の5段階
+// レベル別の色カードを表示するヘルパービュー（15x15・角丸なし）
+struct LevelBadgeView: View {
+    let level: Int
+    let text: String
     
-    // 5段階のカラー定義（4番目に緑 #00AC24 を配置）
-    private let grayColor = Color(hex: "6E6E6E")   // レベル0 (△)
-    private let yellowColor = Color(hex: "FAD000") // レベル1 (◯)
-    private let cyanColor = Color(hex: "00F9F7")   // レベル2 (◎)
-    private let greenColor = Color(hex: "00AC24")  // レベル3 (moon.stars)
-    private let pinkColor = Color(hex: "F84390")   // レベル4 (💎)
-    
-    private var buttonColor: Color {
-        switch level {
-        case 0: return grayColor
-        case 1: return yellowColor
-        case 2: return cyanColor
-        case 3: return greenColor
-        case 4: return pinkColor
-        default: return grayColor
+    var body: some View {
+        ZStack {
+            Rectangle()
+                .fill(Color("Level \(level)"))
+                .frame(width: 15, height: 15)
+            
+            if !text.isEmpty {
+                Text(text)
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundColor(.white)
+            }
         }
     }
+}
+
+// ==========================================
+// 10. セグメント風評価ボタン（正方形・角丸・数字カラー付き・コンパクト）
+// ==========================================
+
+struct SegmentScoreButton: View {
+    let systemImage: String
+    @Binding var level: Int // 0〜5 の6段階
     
-    // 5段階の記号表示（レベル3を "moon.stars" に変更）
-    private var levelText: String {
-        switch level {
-        case 0: return "△"
-        case 1: return "◯"
-        case 2: return "◎"
-        case 3: return "🌙✨" // ※コード内ではテキスト表示ですが、以下のようにImageを使うことも可能です
-        case 4: return "💎"
-        default: return ""
-        }
+    private var buttonColor: Color {
+        Color("Level \(level)")
     }
     
     var body: some View {
         Button(action: {
-            // タップするたびに 0 → 1 → 2 → 3 → 4 → 0 と循環
-            level = (level + 1) % 5
+            level = (level + 1) % 6
         }) {
             VStack(spacing: 2) {
-                Image(systemName: systemImage)
-                    .font(.system(size: 16))
-                    .foregroundColor(buttonColor)
-                
-                // レベル3のときはテキストの代わりにSF Symbolsの moon.stars を表示
-                if level == 3 {
-                    Image(systemName: "moon.stars")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(buttonColor)
-                        .frame(height: 12)
-                } else {
-                    Text(levelText)
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(buttonColor)
-                        .frame(height: 12)
+                // 正方形のマス（15×15pt・角丸2.5）
+                ZStack {
+                    buttonColor
+                        .cornerRadius(2.5)
+                    
+                    Image(systemName: systemImage)
+                        .font(.system(size: 9.5))
+                        .foregroundColor(.white)
                 }
+                .frame(width: 15, height: 15)
+                
+                // マスの下に数字（対応するカラーつき、レベル0のときは非表示）
+                ZStack {
+                    if level > 0 {
+                        Text("\(level)")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(buttonColor)
+                    }
+                }
+                .frame(height: 12)
             }
-            .frame(width: 28, height: 40)
-            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-    }
-}
-
-// Hexカラーを扱うための拡張
-extension Color {
-    init(hex: String) {
-        let scanner = Scanner(string: hex)
-        _ = scanner.scanString("#")
-        var rgbValue: UInt64 = 0
-        scanner.scanHexInt64(&rgbValue)
-        let red = Double((rgbValue & 0xFF0000) >> 16) / 255.0
-        let green = Double((rgbValue & 0x00FF00) >> 8) / 255.0
-        let blue = Double(rgbValue & 0x0000FF) / 255.0
-        self.init(red: red, green: green, blue: blue)
+        .transaction { transaction in
+            transaction.animation = nil
+            transaction.disablesAnimations = true
+        }
     }
 }
 
