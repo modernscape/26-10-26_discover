@@ -503,7 +503,8 @@ struct HighlightedItemsView: View {
         let currentIndex = CGFloat(level)
         
         // 既存のオフセットに「3マス分上（- 72pt）」の補正を加える
-        return -(currentIndex * (itemHeight + spacing)) - 72.0
+//        return -(currentIndex * (itemHeight + spacing)) - 72.0
+        return -(currentIndex * (itemHeight + spacing)) + 71
     }
     
     var body: some View {
@@ -1268,7 +1269,10 @@ struct SegmentScoreButton: View {
     }
 }
 
+// ==========================================
 // 画面全体で使い回す共通のポップアップメニュー本体
+// ==========================================
+
 struct SharedSegmentScorePopup: View {
     let item: Item
     let buttonIndex: Int
@@ -1310,9 +1314,15 @@ struct SharedSegmentScorePopup: View {
             if currentLevel > 0 {
                 ForEach(0..<currentLevel, id: \.self) { num in
                     Button(action: {
-                        levelBinding.wrappedValue = num
-                        withAnimation(.easeInOut(duration: 0.15)) {
-                            activePopup = nil
+                        // アニメーションしながら値を切り替え
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            levelBinding.wrappedValue = num
+                        }
+                        // スライド動作が見えるように少しだけ遅れてから閉じる
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                            withAnimation(.easeInOut(duration: 0.1)) {
+                                activePopup = nil
+                            }
                         }
                     }) {
                         ZStack {
@@ -1353,9 +1363,15 @@ struct SharedSegmentScorePopup: View {
             if currentLevel < 5 {
                 ForEach((currentLevel+1)...5, id: \.self) { num in
                     Button(action: {
-                        levelBinding.wrappedValue = num
-                        withAnimation(.easeInOut(duration: 0.15)) {
-                            activePopup = nil
+                        // アニメーションしながら値を切り替え
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            levelBinding.wrappedValue = num
+                        }
+                        // 少しだけ遅れてから閉じる
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                            withAnimation(.easeInOut(duration: 0.1)) {
+                                activePopup = nil
+                            }
                         }
                     }) {
                         ZStack {
