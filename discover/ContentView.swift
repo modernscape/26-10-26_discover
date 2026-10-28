@@ -107,48 +107,24 @@ struct ContentView: View {
     }
     
     private func setupInitialData(context: ModelContext) {
-//        let defaultDream = Dream(
-//            goalTitle: "月収",
-//            goalValue: "100万円",
-//            currentTitle: "月収",
-//            currentValue: "35万円"
-//        )
-        
         let defaultDream = Dream(
-            goalTitle: "ライフワーク",
-            goalValue: "起業",
-            currentTitle: "仕事",
-            currentValue: "会社員"
+            goalTitle: "月収",
+            goalValue: "100万円",
+            currentTitle: "月収",
+            currentValue: "35万円"
         )
         
-//        let item1 = Item(title: "転職", impact: 80.0, ease: 30.0, merit: "年収アップ確実", demerit: "準備に時間がかかる", isHighlighted: false, moneyLevel: 4, funLevel: 1, contributionLevel: 3, comfortableLevel: 1, easyStartLevel: 2)
-//        item1.actions = [
-//            Action(title: "履歴書・職務経歴書を作成する", done: true),
-//            Action(title: "エージェントに登録する", done: false)
-//        ]
-        
-        let item1 = Item(title: "世の中の問題に目を向ける", impact: 90.0, ease: 30.0, merit: "人の役に立てる！", demerit: "すでに他の人が気づいてる？", isHighlighted: true, moneyLevel: 4, funLevel: 4, contributionLevel: 5, comfortableLevel: 2, easyStartLevel: 1)
+        let item1 = Item(title: "転職", impact: 80.0, ease: 30.0, merit: "年収アップ確実", demerit: "準備に時間がかかる", isHighlighted: true, moneyLevel: 4, funLevel: 1, contributionLevel: 3, comfortableLevel: 1, easyStartLevel: 2)
         item1.actions = [
-            Action(title: "人にはどんな悩み・苦しみがあるか観察する", done: true),
-            Action(title: "不満・不都合・不具合・不便・不平等・不条理、に目を向ける", done: false)
+            Action(title: "履歴書・職務経歴書を作成する", done: true),
+            Action(title: "エージェントに登録する", done: false)
         ]
         
-        let item2 = Item(title: "自分の好きなことを探究する", impact: 70.0, ease: 80.0, merit: "楽しい✨✨", demerit: "それでお金になるかは分からない。。", isHighlighted: false, moneyLevel: 3, funLevel: 5, contributionLevel: 3, comfortableLevel: 5, easyStartLevel: 4)
-        item1.actions = [
-            Action(title: "お金を払っててもしたいことは何か？", done: true),
-            Action(title: "突然仕事が休みになったら何をする？", done: false)
-        ]
+        let item2 = Item(title: "エージェントから受注", impact: 70.0, ease: 60.0, merit: "すぐ始められる", demerit: "単価が変動する", isHighlighted: true, moneyLevel: 3, funLevel: 4, contributionLevel: 0, comfortableLevel: 2, easyStartLevel: 1)
+        let item3 = Item(title: "App Storeで収益化", impact: 30.0, ease: 40.0, merit: "当たれば大きい", demerit: "時間がかかる", isHighlighted: false)
+        let item4 = Item(title: "起業", impact: 95.0, ease: 10.0, merit: "リターンが大きい", demerit: "ハイリスク", isHighlighted: false)
         
-        
-        //
-        
-//
-//        let item2 = Item(title: "エージェントから受注", impact: 70.0, ease: 60.0, merit: "すぐ始められる", demerit: "単価が変動する", isHighlighted: true, moneyLevel: 3, funLevel: 4, contributionLevel: 0, comfortableLevel: 2, easyStartLevel: 1)
-//        let item3 = Item(title: "App Storeで収益化", impact: 30.0, ease: 40.0, merit: "当たれば大きい", demerit: "時間がかかる", isHighlighted: false)
-//        let item4 = Item(title: "起業", impact: 95.0, ease: 10.0, merit: "リターンが大きい", demerit: "ハイリスク", isHighlighted: false)
-        
-        defaultDream.items = [item1, item2]
-//        defaultDream.items = [item1, item2, item3, item4]
+        defaultDream.items = [item1, item2, item3, item4]
         context.insert(defaultDream)
     }
 }
@@ -262,8 +238,6 @@ struct DreamDetailView: View {
                                 HStack(spacing: 8) {
                                     TextField("項目", text: $dream.goalTitle)
                                         .textFieldStyle(.roundedBorder)
-                                        .lineLimit(1) // 1行に制限
-                                        .minimumScaleFactor(0.5) // 枠からはみ出る場合に元の文字サイズの最大50%まで自動縮小
                                         .focused($focusedField, equals: .goalTitle)
                                         .clearButton(text: $dream.goalTitle, isFocused: focusedField == .goalTitle)
                                         .submitLabel(.done)
@@ -276,8 +250,8 @@ struct DreamDetailView: View {
                                         .clearButton(text: $dream.goalValue, isFocused: focusedField == .goalValue)
                                         .font(.title3)
                                         .bold()
-                                        .lineLimit(1) // 1行に制限
-                                        .minimumScaleFactor(0.5) // 枠からはみ出る場合に元の文字サイズの最大50%まで自動縮小
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.5)
                                         .submitLabel(.done)
                                         .onSubmit { focusedField = nil }
                                 }
@@ -292,8 +266,6 @@ struct DreamDetailView: View {
                                 HStack(spacing: 8) {
                                     TextField("項目", text: $dream.currentTitle)
                                         .textFieldStyle(.roundedBorder)
-                                        .lineLimit(1) // 1行に制限
-                                        .minimumScaleFactor(0.5) // 枠からはみ出る場合に元の文字サイズの最大50%まで自動縮小
                                         .focused($focusedField, equals: .currentTitle)
                                         .clearButton(text: $dream.currentTitle, isFocused: focusedField == .currentTitle)
                                         .foregroundColor(.red)
@@ -303,12 +275,12 @@ struct DreamDetailView: View {
                                     
                                     TextField("値", text: $dream.currentValue)
                                         .textFieldStyle(.roundedBorder)
-                                        .lineLimit(1) // 1行に制限
-                                        .minimumScaleFactor(0.5) // 枠からはみ出る場合に元の文字サイズの最大50%まで自動縮小
                                         .focused($focusedField, equals: .currentValue)
                                         .clearButton(text: $dream.currentValue, isFocused: focusedField == .currentValue)
                                         .font(.subheadline)
                                         .foregroundColor(.red)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.5)
                                         .submitLabel(.done)
                                         .onSubmit { focusedField = nil }
                                 }
@@ -317,23 +289,14 @@ struct DreamDetailView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     
-                    // ★ アイコンの説明 ＋ レベル色凡例（1〜5のみ）
                     VStack(spacing: 6) {
                         HStack(spacing: 12) {
                             LegendItemView(systemImage: "yensign.circle.fill", label: "収入", color: Color("Legend Item Color"))
                             LegendItemView(systemImage: "fireworks", label: "ワクワク", color: Color("Legend Item Color"))
                             LegendItemView(systemImage: "apple.meditate", label: "貢献", color: Color("Legend Item Color"))
                             LegendItemView(systemImage: "figure.mind.and.body", label: "快適", color: Color("Legend Item Color"))
-                            LegendItemView(systemImage: "figure.walk", label: "手軽さ", color: Color("Legend Item Color"))
+                            LegendItemView(systemImage: "figure.walk", label: "手軽", color: Color("Legend Item Color"))
                         }
-                        
-//                        HStack(spacing: 6) {
-//                            LevelBadgeView(level: 1, text: "1")
-//                            LevelBadgeView(level: 2, text: "2")
-//                            LevelBadgeView(level: 3, text: "3")
-//                            LevelBadgeView(level: 4, text: "4")
-//                            LevelBadgeView(level: 5, text: "5")
-//                        }
                     }
                     .padding(.top, 2)
                 }
@@ -516,6 +479,8 @@ struct HighlightedItemRowView: View {
     @State private var showingDeleteAlert = false
     @State private var showingResetAlert = false
     
+    @State private var activeSelectingIndex: Int? = nil
+    
     private var currentImpact: Double {
         tempImpact ?? item.impact
     }
@@ -534,7 +499,6 @@ struct HighlightedItemRowView: View {
         return Color("EaseSliderTint").opacity(opacity)
     }
     
-    // すべての評価が0かどうかを判定
     private var areAllLevelsZero: Bool {
         item.moneyLevel == 0 && item.funLevel == 0 && item.contributionLevel == 0 && item.comfortableLevel == 0 && item.easyStartLevel == 0
     }
@@ -626,7 +590,7 @@ struct HighlightedItemRowView: View {
                 .accentColor(impactColor)
             }
             
-            // --- やり易さスライダー ＆ セグメント評価 ＋ マス専用の真横・上下中央リセットボタン（アニメーション対応） ---
+            // --- やり易さスライダー ＆ セグメント評価（完全フロート展開） ＋ リセットボタン ---
             HStack(alignment: .top, spacing: 8) {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
@@ -663,18 +627,18 @@ struct HighlightedItemRowView: View {
                     )
                     .accentColor(easeColor)
                 }
-                .frame(width: UIScreen.main.bounds.width * 0.52)
+                .frame(width: UIScreen.main.bounds.width * 0.44)
                 
                 Spacer()
                 
-                // 評価マス群 ＋ 正方形マスの高さ(15pt)の中心に合わせたリセットボタン（アニメーション付き）
-                HStack(alignment: .top, spacing: 2) {
-                    HStack(spacing: 1.5) {
-                        SegmentScoreButton(systemImage: "yensign.circle.fill", level: $item.moneyLevel)
-                        SegmentScoreButton(systemImage: "fireworks", level: $item.funLevel)
-                        SegmentScoreButton(systemImage: "apple.meditate", level: $item.contributionLevel)
-                        SegmentScoreButton(systemImage: "figure.mind.and.body", level: $item.comfortableLevel)
-                        SegmentScoreButton(systemImage: "figure.walk", level: $item.easyStartLevel)
+                // 評価マス群（22pt・完全フロート展開） ＋ リセットボタン
+                HStack(alignment: .top, spacing: 4) {
+                    HStack(alignment: .top, spacing: 2) {
+                        SegmentScoreButton(index: 1, systemImage: "yensign.circle.fill", level: $item.moneyLevel, activeSelectingIndex: $activeSelectingIndex)
+                        SegmentScoreButton(index: 2, systemImage: "fireworks", level: $item.funLevel, activeSelectingIndex: $activeSelectingIndex)
+                        SegmentScoreButton(index: 3, systemImage: "apple.meditate", level: $item.contributionLevel, activeSelectingIndex: $activeSelectingIndex)
+                        SegmentScoreButton(index: 4, systemImage: "figure.mind.and.body", level: $item.comfortableLevel, activeSelectingIndex: $activeSelectingIndex)
+                        SegmentScoreButton(index: 5, systemImage: "figure.walk", level: $item.easyStartLevel, activeSelectingIndex: $activeSelectingIndex)
                     }
                     
                     Button(action: {
@@ -685,12 +649,12 @@ struct HighlightedItemRowView: View {
                             .foregroundColor(.secondary)
                     }
                     .buttonStyle(.plain)
-                    .frame(width: 18, height: 15) // マスの高さ(15pt)に合わせる
+                    .frame(width: 18, height: 22)
                     .opacity(areAllLevelsZero ? 0.0 : 1.0)
-                    .scaleEffect(areAllLevelsZero ? 0.5 : 1.0) // 縮小・拡大の演出
+                    .scaleEffect(areAllLevelsZero ? 0.5 : 1.0)
                     .disabled(areAllLevelsZero)
                     .contentShape(Rectangle())
-                    .animation(.easeInOut(duration: 0.2), value: areAllLevelsZero) // スムーズなアニメーション
+                    .animation(.easeInOut(duration: 0.2), value: areAllLevelsZero)
                     .alert("評価をリセットしますか？", isPresented: $showingResetAlert) {
                         Button("キャンセル", role: .cancel) { }
                         Button("リセット", role: .destructive) {
@@ -699,6 +663,7 @@ struct HighlightedItemRowView: View {
                             item.contributionLevel = 0
                             item.comfortableLevel = 0
                             item.easyStartLevel = 0
+                            activeSelectingIndex = nil
                         }
                     }
                 }
@@ -745,45 +710,6 @@ struct HighlightedItemRowView: View {
                         }
                 }
                 .frame(maxWidth: .infinity)
-            }
-            
-            Divider()
-                .padding(.vertical, 2)
-            
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text("具体的なアクション")
-                        .font(.caption)
-                        .bold()
-                        .foregroundColor(.secondary)
-                    
-                    Spacer()
-                    
-                    Button(action: {
-                        let newAction = Action(title: "")
-                        item.actions.append(newAction)
-                    }) {
-                        Label("アクション追加", systemImage: "plus.circle.fill")
-                            .font(.caption)
-                            .bold()
-                    }
-                    .buttonStyle(.borderless)
-                }
-                
-                if !item.actions.isEmpty {
-                    VStack(spacing: 6) {
-                        ForEach(Array(item.actions.enumerated()), id: \.element.id) { actIndex, action in
-                            ActionRowView(index: actIndex + 1, action: action) {
-                                if let targetIndex = item.actions.firstIndex(where: { $0.id == action.id }) {
-                                    item.actions.remove(at: targetIndex)
-                                }
-                            }
-                        }
-                    }
-                    .padding(8)
-                    .background(Color(.systemGroupedBackground))
-                    .cornerRadius(8)
-                }
             }
         }
         .padding(.vertical, 4)
@@ -872,6 +798,8 @@ struct ItemRowView: View {
     @State private var showingDeleteAlert = false
     @State private var showingResetAlert = false
     
+    @State private var activeSelectingIndex: Int? = nil
+    
     private var currentImpact: Double {
         tempImpact ?? item.impact
     }
@@ -890,7 +818,6 @@ struct ItemRowView: View {
         return Color("EaseSliderTint").opacity(opacity)
     }
     
-    // すべての評価が0かどうかを判定
     private var areAllLevelsZero: Bool {
         item.moneyLevel == 0 && item.funLevel == 0 && item.contributionLevel == 0 && item.comfortableLevel == 0 && item.easyStartLevel == 0
     }
@@ -960,7 +887,7 @@ struct ItemRowView: View {
                 .accentColor(impactColor)
             }
             
-            // --- やり易さスライダー ＆ セグメント評価 ＋ マス専用の真横・上下中央リセットボタン（アニメーション対応） ---
+            // --- やり易さスライダー ＆ セグメント評価（完全フロート展開） ＋ リセットボタン ---
             HStack(alignment: .top, spacing: 8) {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
@@ -997,18 +924,18 @@ struct ItemRowView: View {
                     )
                     .accentColor(easeColor)
                 }
-                .frame(width: UIScreen.main.bounds.width * 0.52)
+                .frame(width: UIScreen.main.bounds.width * 0.44)
                 
                 Spacer()
                 
-                // 評価マス群 ＋ 正方形マスの高さ(15pt)の中心に合わせたリセットボタン（アニメーション付き）
-                HStack(alignment: .top, spacing: 2) {
-                    HStack(spacing: 1.5) {
-                        SegmentScoreButton(systemImage: "yensign.circle.fill", level: $item.moneyLevel)
-                        SegmentScoreButton(systemImage: "fireworks", level: $item.funLevel)
-                        SegmentScoreButton(systemImage: "apple.meditate", level: $item.contributionLevel)
-                        SegmentScoreButton(systemImage: "figure.mind.and.body", level: $item.comfortableLevel)
-                        SegmentScoreButton(systemImage: "figure.walk", level: $item.easyStartLevel)
+                // 評価マス群（22pt・完全フロート展開） ＋ リセットボタン
+                HStack(alignment: .top, spacing: 4) {
+                    HStack(alignment: .top, spacing: 2) {
+                        SegmentScoreButton(index: 1, systemImage: "yensign.circle.fill", level: $item.moneyLevel, activeSelectingIndex: $activeSelectingIndex)
+                        SegmentScoreButton(index: 2, systemImage: "fireworks", level: $item.funLevel, activeSelectingIndex: $activeSelectingIndex)
+                        SegmentScoreButton(index: 3, systemImage: "apple.meditate", level: $item.contributionLevel, activeSelectingIndex: $activeSelectingIndex)
+                        SegmentScoreButton(index: 4, systemImage: "figure.mind.and.body", level: $item.comfortableLevel, activeSelectingIndex: $activeSelectingIndex)
+                        SegmentScoreButton(index: 5, systemImage: "figure.walk", level: $item.easyStartLevel, activeSelectingIndex: $activeSelectingIndex)
                     }
                     
                     Button(action: {
@@ -1019,12 +946,12 @@ struct ItemRowView: View {
                             .foregroundColor(.secondary)
                     }
                     .buttonStyle(.plain)
-                    .frame(width: 18, height: 15) // マスの高さ(15pt)に合わせる
+                    .frame(width: 18, height: 22)
                     .opacity(areAllLevelsZero ? 0.0 : 1.0)
-                    .scaleEffect(areAllLevelsZero ? 0.5 : 1.0) // 縮小・拡大の演出
+                    .scaleEffect(areAllLevelsZero ? 0.5 : 1.0)
                     .disabled(areAllLevelsZero)
                     .contentShape(Rectangle())
-                    .animation(.easeInOut(duration: 0.2), value: areAllLevelsZero) // スムーズなアニメーション
+                    .animation(.easeInOut(duration: 0.2), value: areAllLevelsZero)
                     .alert("評価をリセットしますか？", isPresented: $showingResetAlert) {
                         Button("キャンセル", role: .cancel) { }
                         Button("リセット", role: .destructive) {
@@ -1033,10 +960,12 @@ struct ItemRowView: View {
                             item.contributionLevel = 0
                             item.comfortableLevel = 0
                             item.easyStartLevel = 0
+                            activeSelectingIndex = nil
                         }
                     }
                 }
             }
+            .zIndex(activeSelectingIndex != nil ? 999 : 1) // ★ここを追加！
             
             // --- メリット・デメリット ---
             HStack(alignment: .top, spacing: 12) {
@@ -1101,7 +1030,7 @@ struct ItemRowView: View {
 }
 
 // ==========================================
-// 8.5 炎アイコン（X風キラリ・パーティクルエフェクト付き・FlameTintアセット対応）
+// 8. 炎アイコン（X風キラリ・パーティクルエフェクト付き・FlameTintアセット対応）
 // ==========================================
 
 struct FlameToggleButton: View {
@@ -1186,70 +1115,138 @@ struct LegendItemView: View {
     }
 }
 
-// レベル別の色カードを表示するヘルパービュー（15x15・角丸なし）
-struct LevelBadgeView: View {
-    let level: Int
-    let text: String
-    
-    var body: some View {
-        ZStack {
-            Rectangle()
-                .fill(Color("Level \(level)"))
-                .frame(width: 15, height: 15)
-            
-            if !text.isEmpty {
-                Text(text)
-                    .font(.system(size: 9, weight: .bold))
-                    .foregroundColor(.white)
-            }
-        }
-    }
-}
-
 // ==========================================
-// 10. セグメント風評価ボタン（正方形・角丸・数字カラー付き・コンパクト）
+// 10. 修正版：完全浮動オーバーレイ展開式の評価ボタン
 // ==========================================
 
 struct SegmentScoreButton: View {
+    let index: Int
     let systemImage: String
     @Binding var level: Int // 0〜5 の6段階
+    @Binding var activeSelectingIndex: Int?
+    
+    private var isSelecting: Bool {
+        activeSelectingIndex == index
+    }
     
     private var buttonColor: Color {
         Color("Level \(level)")
     }
     
     var body: some View {
-        Button(action: {
-            level = (level + 1) % 6
-        }) {
+        ZStack(alignment: .top) {
+            // 通常時のボタン（22×22pt）
             VStack(spacing: 2) {
-                // 正方形のマス（15×15pt・角丸2.5）
-                ZStack {
-                    buttonColor
-                        .cornerRadius(2.5)
-                    
-                    Image(systemName: systemImage)
-                        .font(.system(size: 9.5))
-                        .foregroundColor(.white)
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.15)) {
+                        activeSelectingIndex = index
+                    }
+                }) {
+                    ZStack {
+                        buttonColor
+                            .cornerRadius(3.0)
+                        
+                        Image(systemName: systemImage)
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(.white)
+                    }
+                    .frame(width: 22, height: 22)
                 }
-                .frame(width: 15, height: 15)
+                .buttonStyle(.plain)
                 
-                // マスの下に数字（対応するカラーつき、レベル0のときは非表示）
                 ZStack {
                     if level > 0 {
                         Text("\(level)")
-                            .font(.system(size: 9, weight: .bold))
+                            .font(.system(size: 10, weight: .bold))
                             .foregroundColor(buttonColor)
                     }
                 }
                 .frame(height: 12)
             }
+            .opacity(isSelecting ? 0 : 1) // 展開中は元の場所を非表示に
+            
+            // 選択時：完全に浮いたオーバーレイとして上下に展開
+            if isSelecting {
+                VStack(spacing: 2) {
+                    // 1. 上に展開する数字（現在値より小さい値：x, 1, 2 の順）
+                    if level > 0 {
+                        ForEach(0..<level, id: \.self) { num in
+                            Button(action: {
+                                level = num
+                                withAnimation(.easeInOut(duration: 0.15)) {
+                                    activeSelectingIndex = nil
+                                }
+                            }) {
+                                ZStack {
+                                    Color("Level \(num)")
+                                        .cornerRadius(3.0)
+                                        .opacity(0.45)
+                                    
+                                    Text(num == 0 ? "×" : "\(num)")
+                                        .font(.system(size: 10, weight: .bold))
+                                        .foregroundColor(.white)
+                                        .opacity(0.95)
+                                }
+                                .frame(width: 22, height: 22)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    
+                    // 2. 現在選択中の位置（元の評価アイコンを大きさもそのまま表示）
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            activeSelectingIndex = nil
+                        }
+                    }) {
+                        ZStack {
+                            buttonColor
+                                .cornerRadius(3.0)
+                            
+                            Image(systemName: systemImage)
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
+                        .frame(width: 22, height: 22)
+                    }
+                    .buttonStyle(.plain)
+                    
+                    // 3. 下に展開する数字（現在値より大きい値：3, 4, 5）
+                    if level < 5 {
+                        ForEach((level+1)...5, id: \.self) { num in
+                            Button(action: {
+                                level = num
+                                withAnimation(.easeInOut(duration: 0.15)) {
+                                    activeSelectingIndex = nil
+                                }
+                            }) {
+                                ZStack {
+                                    Color("Level \(num)")
+                                        .cornerRadius(3.0)
+                                        .opacity(0.45)
+                                    
+                                    Text("\(num)")
+                                        .font(.system(size: 10, weight: .bold))
+                                        .foregroundColor(.white)
+                                        .opacity(0.95)
+                                }
+                                .frame(width: 22, height: 22)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+                .padding(0)
+                .background(Color(.systemBackground))
+                .cornerRadius(4)
+                .shadow(color: Color.black.opacity(0.18), radius: 6, x: 0, y: 3)
+                .offset(y: (CGFloat(level) * -24.0) + 53.0)
+                .transition(.scale.combined(with: .opacity))
+            }
         }
-        .buttonStyle(.plain)
-        .transaction { transaction in
-            transaction.animation = nil
-            transaction.disablesAnimations = true
-        }
+        .frame(width: 22, height: 22)
+        // 選択中は周囲のUIより圧倒的に手前に表示されるよう最大値を設定
+        .zIndex(isSelecting ? 99999 : 1)
     }
 }
 
