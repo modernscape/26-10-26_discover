@@ -1205,12 +1205,12 @@ struct LegendItemView: View {
     let color: Color
     
     var body: some View {
-        HStack(spacing: 3) {
+        HStack(spacing: 2) {
             Image(systemName: systemImage)
-                .font(.system(size: 12))
+                .font(.system(size: 14))
                 .foregroundColor(color)
             Text(label)
-                .font(.system(size: 11, weight: .medium))
+                .font(.system(size: 13, weight: .medium))
                 .foregroundColor(color)
         }
     }
@@ -1258,7 +1258,7 @@ struct SegmentScoreButton: View {
                 ZStack {
                     if level > 0 {
                         Text("\(level)")
-                            .font(.system(size: 10, weight: .bold))
+                            .font(.system(size: 11, weight: .bold))
                             .foregroundColor(buttonColor)
                     }
                 }
