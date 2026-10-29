@@ -2,8 +2,11 @@ import SwiftUI
 import SwiftData
 import PhotosUI
 
+import Foundation
+
+
 // ==========================================
-// 1. データモデルの定義
+// Model Definitions
 // ==========================================
 
 @Model
@@ -42,8 +45,8 @@ class Item {
     var demerit: String
     var isCompleted: Bool
     var isHighlighted: Bool // 神風フラグ
+    var isExpanded: Bool // ← デフォルト値があるため、古いデータに存在しなくても自動で補完されます
     
-    // 5つの評価項目（0〜5 の6段階）
     var moneyLevel: Int = 0
     var funLevel: Int = 0
     var contributionLevel: Int = 0
@@ -55,7 +58,7 @@ class Item {
     @Relationship(deleteRule: .cascade)
     var actions: [Action] = []
     
-    init(title: String, impact: Double = 50.0, ease: Double = 50.0, merit: String = "", demerit: String = "", isCompleted: Bool = false, isHighlighted: Bool = false, moneyLevel: Int = 0, funLevel: Int = 0, contributionLevel: Int = 0, comfortableLevel: Int = 0, easyStartLevel: Int = 0) {
+    init(title: String, impact: Double = 50.0, ease: Double = 50.0, merit: String = "", demerit: String = "", isCompleted: Bool = false, isHighlighted: Bool = false, isExpanded: Bool = true, moneyLevel: Int = 0, funLevel: Int = 0, contributionLevel: Int = 0, comfortableLevel: Int = 0, easyStartLevel: Int = 0) {
         self.title = title
         self.impact = impact
         self.ease = ease
@@ -63,6 +66,7 @@ class Item {
         self.demerit = demerit
         self.isCompleted = isCompleted
         self.isHighlighted = isHighlighted
+        self.isExpanded = isExpanded
         self.moneyLevel = moneyLevel
         self.funLevel = funLevel
         self.contributionLevel = contributionLevel
@@ -107,24 +111,45 @@ struct ContentView: View {
     }
     
     private func setupInitialData(context: ModelContext) {
+//        let defaultDream = Dream(
+//            goalTitle: "月収",
+//            goalValue: "100万円",
+//            currentTitle: "月収",
+//            currentValue: "35万円"
+//        )
+        
         let defaultDream = Dream(
-            goalTitle: "月収",
-            goalValue: "100万円",
-            currentTitle: "月収",
-            currentValue: "35万円"
+            goalTitle: "ライフワーク",
+            goalValue: "起業",
+            currentTitle: "仕事",
+            currentValue: "会社員"
         )
         
-        let item1 = Item(title: "転職", impact: 80.0, ease: 30.0, merit: "年収アップ確実", demerit: "準備に時間がかかる", isHighlighted: true, moneyLevel: 4, funLevel: 1, contributionLevel: 3, comfortableLevel: 1, easyStartLevel: 2)
+        let item1 = Item(title: "世の中の問題に目を向ける", impact: 90.0, ease: 30.0, merit: "人の役に立てる！", demerit: "すでに他の人が気づいてる？", isHighlighted: true, moneyLevel: 4, funLevel: 4, contributionLevel: 5, comfortableLevel: 2, easyStartLevel: 1)
         item1.actions = [
-            Action(title: "履歴書・職務経歴書を作成する", done: true),
-            Action(title: "エージェントに登録する", done: false)
+            Action(title: "人にはどんな悩み・苦しみがあるか観察する", done: true),
+            Action(title: "不満・不都合・不具合・不便・不平等・不条理、に目を向ける", done: false)
         ]
         
-        let item2 = Item(title: "エージェントから受注", impact: 70.0, ease: 60.0, merit: "すぐ始められる", demerit: "単価が変動する", isHighlighted: true, moneyLevel: 3, funLevel: 4, contributionLevel: 0, comfortableLevel: 2, easyStartLevel: 1)
-        let item3 = Item(title: "App Storeで収益化", impact: 30.0, ease: 40.0, merit: "当たれば大きい", demerit: "時間がかかる", isHighlighted: false)
-        let item4 = Item(title: "起業", impact: 95.0, ease: 10.0, merit: "リターンが大きい", demerit: "ハイリスク", isHighlighted: false)
+        let item2 = Item(title: "自分の好きなことを探究する", impact: 70.0, ease: 80.0, merit: "楽しい✨✨", demerit: "それでお金になるかは分からない。。", isHighlighted: false, moneyLevel: 3, funLevel: 5, contributionLevel: 3, comfortableLevel: 5, easyStartLevel: 4)
+        item1.actions = [
+            Action(title: "お金を払っててもしたいことは何か？", done: true),
+            Action(title: "突然仕事が休みになったら何をする？", done: false)
+        ]
         
-        defaultDream.items = [item1, item2, item3, item4]
+        
+//        let item1 = Item(title: "転職", impact: 80.0, ease: 30.0, merit: "年収アップ確実", demerit: "準備に時間がかかる", isHighlighted: true, moneyLevel: 4, funLevel: 1, contributionLevel: 3, comfortableLevel: 1, easyStartLevel: 2)
+//        item1.actions = [
+//            Action(title: "履歴書・職務経歴書を作成する", done: true),
+//            Action(title: "エージェントに登録する", done: false)
+//        ]
+//        
+//        let item2 = Item(title: "エージェントから受注", impact: 70.0, ease: 60.0, merit: "すぐ始められる", demerit: "単価が変動する", isHighlighted: true, moneyLevel: 3, funLevel: 4, contributionLevel: 0, comfortableLevel: 2, easyStartLevel: 1)
+//        let item3 = Item(title: "App Storeで収益化", impact: 30.0, ease: 40.0, merit: "当たれば大きい", demerit: "時間がかかる", isHighlighted: false)
+//        let item4 = Item(title: "起業", impact: 95.0, ease: 10.0, merit: "リターンが大きい", demerit: "ハイリスク", isHighlighted: false)
+        
+        defaultDream.items = [item1, item2]
+//        defaultDream.items = [item1, item2, item3, item4]
         context.insert(defaultDream)
     }
 }
@@ -214,9 +239,7 @@ struct DreamDetailView: View {
         let spacing: CGFloat = 2.0
         
         let currentIndex = CGFloat(level)
-        
-        // 基本のオフセットに「2.2マス分下（+ 52.8pt）」の補正を加える
-        return -(currentIndex * (itemHeight + spacing)) + 52.8
+        return -(currentIndex * (itemHeight + spacing)) + 72.0
     }
     
     var body: some View {
@@ -330,6 +353,37 @@ struct DreamDetailView: View {
                     .padding(.bottom, 8)
                     .background(Color(.systemGroupedBackground))
                     
+                    // ==========================================
+                    // ★ リスト上部に配置する「一括開閉バー」
+                    // ==========================================
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            let hasExpanded = sortedItems.contains { $0.isExpanded }
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                for item in sortedItems {
+                                    item.isExpanded = !hasExpanded
+                                }
+                            }
+                        }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: sortedItems.contains { $0.isExpanded } ? "chevron.up.circle" : "chevron.down.circle")
+                                Text(sortedItems.contains { $0.isExpanded } ? "すべて畳む" : "すべて開く")
+                            }
+                            .font(.caption)
+                            .bold()
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(Color(.systemBackground))
+                            .clipShape(Capsule())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 6)
+                    .background(Color(.systemGroupedBackground)) // ← 周囲の背景をグレーに統一
+                    
                     // --- スクロールビュー ---
                     ScrollView {
                         LazyVStack(spacing: 12) {
@@ -349,12 +403,12 @@ struct DreamDetailView: View {
                     }
                     .background(Color(.systemGroupedBackground))
                 }
+                .coordinateSpace(name: "RootSpace")
                 
                 // --- 画面全体の最前面に配置する共有ポップアップレイヤー ---
                 if let popup = activePopup,
                    let targetItem = dream.items.first(where: { $0.id == popup.itemID }) {
                     
-                    // 背景の透明タップ領域（どこをタップしても閉じる）
                     Color.black.opacity(0.001)
                         .ignoresSafeArea()
                         .onTapGesture {
@@ -364,7 +418,6 @@ struct DreamDetailView: View {
                         }
                         .zIndex(998)
                     
-                    // タップされたボタンの座標をベースに、オフセットを適用してピタリと重ねる
                     SharedSegmentScorePopup(
                         item: targetItem,
                         buttonIndex: popup.buttonIndex,
@@ -375,7 +428,6 @@ struct DreamDetailView: View {
                     .zIndex(999)
                 }
             }
-            .coordinateSpace(name: "RootSpace") // ← ここを追加！
             .navigationTitle("Dream")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -501,10 +553,7 @@ struct HighlightedItemsView: View {
         let spacing: CGFloat = 2.0
         
         let currentIndex = CGFloat(level)
-        
-        // 既存のオフセットに「3マス分上（- 72pt）」の補正を加える
-//        return -(currentIndex * (itemHeight + spacing)) - 72.0
-        return -(currentIndex * (itemHeight + spacing)) + 71
+        return -(currentIndex * (itemHeight + spacing)) + 67.2
     }
     
     var body: some View {
@@ -518,23 +567,57 @@ struct HighlightedItemsView: View {
                             description: Text("「追い風アクション」タブで炎ボタンを押して指定すると、ここに表示されます。")
                         )
                     } else {
-                        ScrollView {
-                            LazyVStack(spacing: 12) {
-                                ForEach(Array(highlightedItems.enumerated()), id: \.element.id) { index, item in
-                                    HighlightedItemRowView(index: index + 1, item: item, dream: dream, activePopup: $activePopup)
-                                        .padding(12)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .fill(Color(.systemBackground))
-                                        )
-                                        .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
+                        VStack(spacing: 0) {
+                            // ★ リスト上部の一括開閉バー
+                            HStack {
+                                Spacer()
+                                Button(action: {
+                                    let hasExpanded = highlightedItems.contains { $0.isExpanded }
+                                    withAnimation(.easeInOut(duration: 0.25)) {
+                                        for item in highlightedItems {
+                                            item.isExpanded = !hasExpanded
+                                        }
+                                    }
+                                }) {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: highlightedItems.contains { $0.isExpanded } ? "chevron.up.circle" : "chevron.down.circle")
+                                        Text(highlightedItems.contains { $0.isExpanded } ? "すべて畳む" : "すべて開く")
+                                    }
+                                    .font(.caption)
+                                    .bold()
+                                    .foregroundColor(.secondary)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 4)
+                                    .background(Color(.systemBackground))
+                                    .clipShape(Capsule())
                                 }
+                                .buttonStyle(.plain)
                             }
-                            .padding(16)
+                            .padding(.horizontal, 16)
+                            .padding(.top, 8)
+                            .padding(.bottom, 4)
+                            .background(Color(.systemGroupedBackground)) // ← 周囲の背景をグレーに統一
+                            
+                            ScrollView {
+                                LazyVStack(spacing: 12) {
+                                    ForEach(Array(highlightedItems.enumerated()), id: \.element.id) { index, item in
+                                        HighlightedItemRowView(index: index + 1, item: item, dream: dream, activePopup: $activePopup)
+                                            .padding(12)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 10)
+                                                    .fill(Color(.systemBackground))
+                                            )
+                                            .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
+                                    }
+                                }
+                                .padding(16)
+                            }
+                            .background(Color(.systemGroupedBackground)) // スクロールビュー背景もグレー
                         }
                         .background(Color(.systemGroupedBackground))
                     }
                 }
+                .coordinateSpace(name: "RootSpace")
                 
                 // --- 神風タブ用の最前面共有ポップアップレイヤー ---
                 if let popup = activePopup,
@@ -554,12 +637,11 @@ struct HighlightedItemsView: View {
                         buttonIndex: popup.buttonIndex,
                         activePopup: $activePopup
                     )
-                    .position(x: popup.frame.midX, y: popup.frame.minY)
+                    .position(x: popup.frame.midX, y: popup.frame.midY)
                     .offset(y: popupOffsetY(for: targetItem, buttonIndex: popup.buttonIndex))
                     .zIndex(999)
                 }
             }
-            .coordinateSpace(name: "RootSpace") // ← ここを追加！
             .navigationTitle("神風")
             .navigationBarTitleDisplayMode(.inline)
         }
@@ -627,6 +709,7 @@ struct HighlightedItemRowView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             
+            // --- ヘッダー行（常時表示：番号、完了チェック、タイトル、アコーディオンボタン、炎ボタン） ---
             HStack(spacing: 12) {
                 Image(systemName: encircledSystemImage(for: index))
                     .font(.title2)
@@ -651,169 +734,189 @@ struct HighlightedItemRowView: View {
                     .strikethrough(item.isCompleted, color: .secondary)
                     .foregroundColor(item.isCompleted ? .secondary : .primary)
                 
+                Spacer()
+                
+                // アコーディオン開閉ボタン
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        item.isExpanded.toggle()
+                    }
+                }) {
+                    Image(systemName: item.isExpanded ? "chevron.up.circle.fill" : "chevron.down.circle.fill")
+                        .foregroundColor(.secondary)
+                        .font(.title3)
+                }
+                .buttonStyle(.plain)
+                
                 FlameToggleButton(isHighlighted: $item.isHighlighted)
             }
             
-            // --- 追い風力スライダー ---
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 4) {
-                    Text("追い風力")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Image(systemName: "wind")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Spacer()
-                    Text("\(Int(currentImpact))%")
-                        .font(.caption2)
-                        .bold()
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(impactColor)
-                        .clipShape(Capsule())
-                }
-                
-                Slider(
-                    value: Binding(
-                        get: { tempImpact ?? item.impact },
-                        set: { tempImpact = $0 }
-                    ),
-                    in: 0...100,
-                    step: 5,
-                    onEditingChanged: { editing in
-                        if editing {
-                            tempImpact = item.impact
-                        } else {
-                            if let finalValue = tempImpact {
-                                item.impact = finalValue
-                                tempImpact = nil
-                            }
+            // --- アコーディオンで開閉する詳細コンテンツ ---
+            if item.isExpanded {
+                VStack(alignment: .leading, spacing: 10) {
+                    // --- 追い風力スライダー ---
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 4) {
+                            Text("追い風力")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Image(systemName: "wind")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Text("\(Int(currentImpact))%")
+                                .font(.caption2)
+                                .bold()
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
+                                .background(impactColor)
+                                .clipShape(Capsule())
                         }
-                    }
-                )
-                .accentColor(impactColor)
-            }
-            
-            // --- やり易さスライダー ＆ セグメント評価 ＋ リセットボタン ---
-            HStack(alignment: .top, spacing: 8) {
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        Text("やり易さ")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Image(systemName: "hand.thumbsup")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Spacer()
-                        Text("\(Int(currentEase))%")
-                            .font(.caption)
-                            .bold()
-                            .foregroundColor(easeColor)
+                        
+                        Slider(
+                            value: Binding(
+                                get: { tempImpact ?? item.impact },
+                                set: { tempImpact = $0 }
+                            ),
+                            in: 0...100,
+                            step: 5,
+                            onEditingChanged: { editing in
+                                if editing {
+                                    tempImpact = item.impact
+                                } else {
+                                    if let finalValue = tempImpact {
+                                        item.impact = finalValue
+                                        tempImpact = nil
+                                    }
+                                }
+                            }
+                        )
+                        .accentColor(impactColor)
                     }
                     
-                    Slider(
-                        value: Binding(
-                            get: { tempEase ?? item.ease },
-                            set: { tempEase = $0 }
-                        ),
-                        in: 0...100,
-                        step: 5,
-                        onEditingChanged: { editing in
-                            if editing {
-                                tempEase = item.ease
-                            } else {
-                                if let finalValue = tempEase {
-                                    item.ease = finalValue
-                                    tempEase = nil
+                    // --- やり易さスライダー ＆ セグメント評価 ＋ リセットボタン ---
+                    HStack(alignment: .top, spacing: 8) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text("やり易さ")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Image(systemName: "hand.thumbsup")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                                Text("\(Int(currentEase))%")
+                                    .font(.caption)
+                                    .bold()
+                                    .foregroundColor(easeColor)
+                            }
+                            
+                            Slider(
+                                value: Binding(
+                                    get: { tempEase ?? item.ease },
+                                    set: { tempEase = $0 }
+                                ),
+                                in: 0...100,
+                                step: 5,
+                                onEditingChanged: { editing in
+                                    if editing {
+                                        tempEase = item.ease
+                                    } else {
+                                        if let finalValue = tempEase {
+                                            item.ease = finalValue
+                                            tempEase = nil
+                                        }
+                                    }
+                                }
+                            )
+                            .accentColor(easeColor)
+                        }
+                        .frame(width: UIScreen.main.bounds.width * 0.44)
+                        
+                        Spacer()
+                        
+                        HStack(alignment: .top, spacing: 4) {
+                            HStack(alignment: .top, spacing: 2) {
+                                SegmentScoreButton(itemID: item.id, index: 1, systemImage: "yensign.circle.fill", level: item.moneyLevel, activePopup: $activePopup)
+                                SegmentScoreButton(itemID: item.id, index: 2, systemImage: "fireworks", level: item.funLevel, activePopup: $activePopup)
+                                SegmentScoreButton(itemID: item.id, index: 3, systemImage: "apple.meditate", level: item.contributionLevel, activePopup: $activePopup)
+                                SegmentScoreButton(itemID: item.id, index: 4, systemImage: "figure.mind.and.body", level: item.comfortableLevel, activePopup: $activePopup)
+                                SegmentScoreButton(itemID: item.id, index: 5, systemImage: "figure.walk", level: item.easyStartLevel, activePopup: $activePopup)
+                            }
+                            
+                            Button(action: {
+                                showingResetAlert = true
+                            }) {
+                                Image(systemName: "xmark.circle")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.secondary)
+                            }
+                            .buttonStyle(.plain)
+                            .frame(width: 18, height: 22)
+                            .opacity(areAllLevelsZero ? 0.0 : 1.0)
+                            .scaleEffect(areAllLevelsZero ? 0.5 : 1.0)
+                            .disabled(areAllLevelsZero)
+                            .contentShape(Rectangle())
+                            .animation(.easeInOut(duration: 0.2), value: areAllLevelsZero)
+                            .alert("評価をリセットしますか？", isPresented: $showingResetAlert) {
+                                Button("キャンセル", role: .cancel) { }
+                                Button("リセット", role: .destructive) {
+                                    item.moneyLevel = 0
+                                    item.funLevel = 0
+                                    item.contributionLevel = 0
+                                    item.comfortableLevel = 0
+                                    item.easyStartLevel = 0
+                                    activePopup = nil
                                 }
                             }
                         }
-                    )
-                    .accentColor(easeColor)
-                }
-                .frame(width: UIScreen.main.bounds.width * 0.44)
-                
-                Spacer()
-                
-                HStack(alignment: .top, spacing: 4) {
-                    HStack(alignment: .top, spacing: 2) {
-                        SegmentScoreButton(itemID: item.id, index: 1, systemImage: "yensign.circle.fill", level: item.moneyLevel, activePopup: $activePopup)
-                        SegmentScoreButton(itemID: item.id, index: 2, systemImage: "fireworks", level: item.funLevel, activePopup: $activePopup)
-                        SegmentScoreButton(itemID: item.id, index: 3, systemImage: "apple.meditate", level: item.contributionLevel, activePopup: $activePopup)
-                        SegmentScoreButton(itemID: item.id, index: 4, systemImage: "figure.mind.and.body", level: item.comfortableLevel, activePopup: $activePopup)
-                        SegmentScoreButton(itemID: item.id, index: 5, systemImage: "figure.walk", level: item.easyStartLevel, activePopup: $activePopup)
                     }
                     
-                    Button(action: {
-                        showingResetAlert = true
-                    }) {
-                        Image(systemName: "xmark.circle")
-                            .font(.system(size: 13))
-                            .foregroundColor(.secondary)
+                    // --- メリット・デメリット ---
+                    HStack(alignment: .top, spacing: 12) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("メリット")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            
+                            TextField("メリット", text: $item.merit, axis: .vertical)
+                                .textFieldStyle(.roundedBorder)
+                                .font(.subheadline)
+                                .focused($isMeritFocused)
+                                .clearButton(text: $item.merit, isFocused: isMeritFocused)
+                                .submitLabel(.done)
+                                .onChange(of: item.merit) { _, newValue in
+                                    if newValue.hasSuffix("\n") {
+                                        item.merit = String(newValue.dropLast())
+                                        isMeritFocused = false
+                                    }
+                                }
+                        }
+                        .frame(maxWidth: .infinity)
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("デメリット")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            
+                            TextField("デメリット", text: $item.demerit, axis: .vertical)
+                                .textFieldStyle(.roundedBorder)
+                                .font(.subheadline)
+                                .focused($isDemeritFocused)
+                                .clearButton(text: $item.demerit, isFocused: isDemeritFocused)
+                                .submitLabel(.done)
+                                .onChange(of: item.demerit) { _, newValue in
+                                    if newValue.hasSuffix("\n") {
+                                        item.demerit = String(newValue.dropLast())
+                                        isDemeritFocused = false
+                                    }
+                                }
+                        }
+                        .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.plain)
-                    .frame(width: 18, height: 22)
-                    .opacity(areAllLevelsZero ? 0.0 : 1.0)
-                    .scaleEffect(areAllLevelsZero ? 0.5 : 1.0)
-                    .disabled(areAllLevelsZero)
-                    .contentShape(Rectangle())
-                    .animation(.easeInOut(duration: 0.2), value: areAllLevelsZero)
-                    .alert("評価をリセットしますか？", isPresented: $showingResetAlert) {
-                        Button("キャンセル", role: .cancel) { }
-                        Button("リセット", role: .destructive) {
-                            item.moneyLevel = 0
-                            item.funLevel = 0
-                            item.contributionLevel = 0
-                            item.comfortableLevel = 0
-                            item.easyStartLevel = 0
-                            activePopup = nil
-                        }
-                    }
                 }
-            }
-            
-            // --- メリット・デメリット ---
-            HStack(alignment: .top, spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("メリット")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    TextField("メリット", text: $item.merit, axis: .vertical)
-                        .textFieldStyle(.roundedBorder)
-                        .font(.subheadline)
-                        .focused($isMeritFocused)
-                        .clearButton(text: $item.merit, isFocused: isMeritFocused)
-                        .submitLabel(.done)
-                        .onChange(of: item.merit) { _, newValue in
-                            if newValue.hasSuffix("\n") {
-                                item.merit = String(newValue.dropLast())
-                                isMeritFocused = false
-                            }
-                        }
-                }
-                .frame(maxWidth: .infinity)
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("デメリット")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    TextField("デメリット", text: $item.demerit, axis: .vertical)
-                        .textFieldStyle(.roundedBorder)
-                        .font(.subheadline)
-                        .focused($isDemeritFocused)
-                        .clearButton(text: $item.demerit, isFocused: isDemeritFocused)
-                        .submitLabel(.done)
-                        .onChange(of: item.demerit) { _, newValue in
-                            if newValue.hasSuffix("\n") {
-                                item.demerit = String(newValue.dropLast())
-                                isDemeritFocused = false
-                            }
-                        }
-                }
-                .frame(maxWidth: .infinity)
+                .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
         .padding(.vertical, 4)
@@ -927,6 +1030,8 @@ struct ItemRowView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
+            
+            // --- ヘッダー行（常時表示：完了チェック、タイトル、アコーディオンボタン、炎ボタン） ---
             HStack(spacing: 12) {
                 Button(action: {
                     item.isCompleted.toggle()
@@ -946,169 +1051,189 @@ struct ItemRowView: View {
                     .strikethrough(item.isCompleted, color: .secondary)
                     .foregroundColor(item.isCompleted ? .secondary : .primary)
                 
+                Spacer()
+                
+                // アコーディオン開閉ボタン
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        item.isExpanded.toggle()
+                    }
+                }) {
+                    Image(systemName: item.isExpanded ? "chevron.up.circle.fill" : "chevron.down.circle.fill")
+                        .foregroundColor(.secondary)
+                        .font(.title3)
+                }
+                .buttonStyle(.plain)
+                
                 FlameToggleButton(isHighlighted: $item.isHighlighted)
             }
             
-            // --- 追い風力スライダー ---
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 4) {
-                    Text("追い風力")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Image(systemName: "wind")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Spacer()
-                    Text("\(Int(currentImpact))%")
-                        .font(.caption2)
-                        .bold()
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(impactColor)
-                        .clipShape(Capsule())
-                }
-                
-                Slider(
-                    value: Binding(
-                        get: { tempImpact ?? item.impact },
-                        set: { tempImpact = $0 }
-                    ),
-                    in: 0...100,
-                    step: 5,
-                    onEditingChanged: { editing in
-                        if editing {
-                            tempImpact = item.impact
-                        } else {
-                            if let finalValue = tempImpact {
-                                item.impact = finalValue
-                                tempImpact = nil
-                            }
+            // --- アコーディオンで開閉する詳細コンテンツ ---
+            if item.isExpanded {
+                VStack(alignment: .leading, spacing: 10) {
+                    // --- 追い風力スライダー ---
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 4) {
+                            Text("追い風力")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Image(systemName: "wind")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Text("\(Int(currentImpact))%")
+                                .font(.caption2)
+                                .bold()
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
+                                .background(impactColor)
+                                .clipShape(Capsule())
                         }
-                    }
-                )
-                .accentColor(impactColor)
-            }
-            
-            // --- やり易さスライダー ＆ セグメント評価 ＋ リセットボタン ---
-            HStack(alignment: .top, spacing: 8) {
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        Text("やり易さ")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Image(systemName: "hand.thumbsup")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Spacer()
-                        Text("\(Int(currentEase))%")
-                            .font(.caption)
-                            .bold()
-                            .foregroundColor(easeColor)
+                        
+                        Slider(
+                            value: Binding(
+                                get: { tempImpact ?? item.impact },
+                                set: { tempImpact = $0 }
+                            ),
+                            in: 0...100,
+                            step: 5,
+                            onEditingChanged: { editing in
+                                if editing {
+                                    tempImpact = item.impact
+                                } else {
+                                    if let finalValue = tempImpact {
+                                        item.impact = finalValue
+                                        tempImpact = nil
+                                    }
+                                }
+                            }
+                        )
+                        .accentColor(impactColor)
                     }
                     
-                    Slider(
-                        value: Binding(
-                            get: { tempEase ?? item.ease },
-                            set: { tempEase = $0 }
-                        ),
-                        in: 0...100,
-                        step: 5,
-                        onEditingChanged: { editing in
-                            if editing {
-                                tempEase = item.ease
-                            } else {
-                                if let finalValue = tempEase {
-                                    item.ease = finalValue
-                                    tempEase = nil
+                    // --- やり易さスライダー ＆ セグメント評価 ＋ リセットボタン ---
+                    HStack(alignment: .top, spacing: 8) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text("やり易さ")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Image(systemName: "hand.thumbsup")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                                Text("\(Int(currentEase))%")
+                                    .font(.caption)
+                                    .bold()
+                                    .foregroundColor(easeColor)
+                            }
+                            
+                            Slider(
+                                value: Binding(
+                                    get: { tempEase ?? item.ease },
+                                    set: { tempEase = $0 }
+                                ),
+                                in: 0...100,
+                                step: 5,
+                                onEditingChanged: { editing in
+                                    if editing {
+                                        tempEase = item.ease
+                                    } else {
+                                        if let finalValue = tempEase {
+                                            item.ease = finalValue
+                                            tempEase = nil
+                                        }
+                                    }
+                                }
+                            )
+                            .accentColor(easeColor)
+                        }
+                        .frame(width: UIScreen.main.bounds.width * 0.44)
+                        
+                        Spacer()
+                        
+                        HStack(alignment: .top, spacing: 4) {
+                            HStack(alignment: .top, spacing: 2) {
+                                SegmentScoreButton(itemID: item.id, index: 1, systemImage: "yensign.circle.fill", level: item.moneyLevel, activePopup: $activePopup)
+                                SegmentScoreButton(itemID: item.id, index: 2, systemImage: "fireworks", level: item.funLevel, activePopup: $activePopup)
+                                SegmentScoreButton(itemID: item.id, index: 3, systemImage: "apple.meditate", level: item.contributionLevel, activePopup: $activePopup)
+                                SegmentScoreButton(itemID: item.id, index: 4, systemImage: "figure.mind.and.body", level: item.comfortableLevel, activePopup: $activePopup)
+                                SegmentScoreButton(itemID: item.id, index: 5, systemImage: "figure.walk", level: item.easyStartLevel, activePopup: $activePopup)
+                            }
+                            
+                            Button(action: {
+                                showingResetAlert = true
+                            }) {
+                                Image(systemName: "xmark.circle")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.secondary)
+                            }
+                            .buttonStyle(.plain)
+                            .frame(width: 18, height: 22)
+                            .opacity(areAllLevelsZero ? 0.0 : 1.0)
+                            .scaleEffect(areAllLevelsZero ? 0.5 : 1.0)
+                            .disabled(areAllLevelsZero)
+                            .contentShape(Rectangle())
+                            .animation(.easeInOut(duration: 0.2), value: areAllLevelsZero)
+                            .alert("評価をリセットしますか？", isPresented: $showingResetAlert) {
+                                Button("キャンセル", role: .cancel) { }
+                                Button("リセット", role: .destructive) {
+                                    item.moneyLevel = 0
+                                    item.funLevel = 0
+                                    item.contributionLevel = 0
+                                    item.comfortableLevel = 0
+                                    item.easyStartLevel = 0
+                                    activePopup = nil
                                 }
                             }
                         }
-                    )
-                    .accentColor(easeColor)
-                }
-                .frame(width: UIScreen.main.bounds.width * 0.44)
-                
-                Spacer()
-                
-                HStack(alignment: .top, spacing: 4) {
-                    HStack(alignment: .top, spacing: 2) {
-                        SegmentScoreButton(itemID: item.id, index: 1, systemImage: "yensign.circle.fill", level: item.moneyLevel, activePopup: $activePopup)
-                        SegmentScoreButton(itemID: item.id, index: 2, systemImage: "fireworks", level: item.funLevel, activePopup: $activePopup)
-                        SegmentScoreButton(itemID: item.id, index: 3, systemImage: "apple.meditate", level: item.contributionLevel, activePopup: $activePopup)
-                        SegmentScoreButton(itemID: item.id, index: 4, systemImage: "figure.mind.and.body", level: item.comfortableLevel, activePopup: $activePopup)
-                        SegmentScoreButton(itemID: item.id, index: 5, systemImage: "figure.walk", level: item.easyStartLevel, activePopup: $activePopup)
                     }
                     
-                    Button(action: {
-                        showingResetAlert = true
-                    }) {
-                        Image(systemName: "xmark.circle")
-                            .font(.system(size: 13))
-                            .foregroundColor(.secondary)
+                    // --- メリット・デメリット ---
+                    HStack(alignment: .top, spacing: 12) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("メリット")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            
+                            TextField("メリット", text: $item.merit, axis: .vertical)
+                                .textFieldStyle(.roundedBorder)
+                                .font(.subheadline)
+                                .focused($isMeritFocused)
+                                .clearButton(text: $item.merit, isFocused: isMeritFocused)
+                                .submitLabel(.done)
+                                .onChange(of: item.merit) { _, newValue in
+                                    if newValue.hasSuffix("\n") {
+                                        item.merit = String(newValue.dropLast())
+                                        isMeritFocused = false
+                                    }
+                                }
+                        }
+                        .frame(maxWidth: .infinity)
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("デメリット")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            
+                            TextField("デメリット", text: $item.demerit, axis: .vertical)
+                                .textFieldStyle(.roundedBorder)
+                                .font(.subheadline)
+                                .focused($isDemeritFocused)
+                                .clearButton(text: $item.demerit, isFocused: isDemeritFocused)
+                                .submitLabel(.done)
+                                .onChange(of: item.demerit) { _, newValue in
+                                    if newValue.hasSuffix("\n") {
+                                        item.demerit = String(newValue.dropLast())
+                                        isDemeritFocused = false
+                                    }
+                                }
+                        }
+                        .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.plain)
-                    .frame(width: 18, height: 22)
-                    .opacity(areAllLevelsZero ? 0.0 : 1.0)
-                    .scaleEffect(areAllLevelsZero ? 0.5 : 1.0)
-                    .disabled(areAllLevelsZero)
-                    .contentShape(Rectangle())
-                    .animation(.easeInOut(duration: 0.2), value: areAllLevelsZero)
-                    .alert("評価をリセットしますか？", isPresented: $showingResetAlert) {
-                        Button("キャンセル", role: .cancel) { }
-                        Button("リセット", role: .destructive) {
-                            item.moneyLevel = 0
-                            item.funLevel = 0
-                            item.contributionLevel = 0
-                            item.comfortableLevel = 0
-                            item.easyStartLevel = 0
-                            activePopup = nil
-                        }
-                    }
                 }
-            }
-            
-            // --- メリット・デメリット ---
-            HStack(alignment: .top, spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("メリット")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    TextField("メリット", text: $item.merit, axis: .vertical)
-                        .textFieldStyle(.roundedBorder)
-                        .font(.subheadline)
-                        .focused($isMeritFocused)
-                        .clearButton(text: $item.merit, isFocused: isMeritFocused)
-                        .submitLabel(.done)
-                        .onChange(of: item.merit) { _, newValue in
-                            if newValue.hasSuffix("\n") {
-                                item.merit = String(newValue.dropLast())
-                                isMeritFocused = false
-                            }
-                        }
-                }
-                .frame(maxWidth: .infinity)
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("デメリット")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    TextField("デメリット", text: $item.demerit, axis: .vertical)
-                        .textFieldStyle(.roundedBorder)
-                        .font(.subheadline)
-                        .focused($isDemeritFocused)
-                        .clearButton(text: $item.demerit, isFocused: isDemeritFocused)
-                        .submitLabel(.done)
-                        .onChange(of: item.demerit) { _, newValue in
-                            if newValue.hasSuffix("\n") {
-                                item.demerit = String(newValue.dropLast())
-                                isDemeritFocused = false
-                            }
-                        }
-                }
-                .frame(maxWidth: .infinity)
+                .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
         .padding(.vertical, 4)
@@ -1205,12 +1330,12 @@ struct LegendItemView: View {
     let color: Color
     
     var body: some View {
-        HStack(spacing: 2) {
+        HStack(spacing: 3) {
             Image(systemName: systemImage)
-                .font(.system(size: 14))
+                .font(.system(size: 12))
                 .foregroundColor(color)
             Text(label)
-                .font(.system(size: 13, weight: .medium))
+                .font(.system(size: 11, weight: .medium))
                 .foregroundColor(color)
         }
     }
@@ -1236,7 +1361,6 @@ struct SegmentScoreButton: View {
         GeometryReader { proxy in
             VStack(spacing: 2) {
                 Button(action: {
-                    // ★ グローバルではなく、名前付き空間「RootSpace」基準の座標を取得する
                     let localFrame = proxy.frame(in: .named("RootSpace"))
                     withAnimation(.easeInOut(duration: 0.15)) {
                         activePopup = (itemID: itemID, buttonIndex: index, frame: localFrame)
@@ -1258,7 +1382,7 @@ struct SegmentScoreButton: View {
                 ZStack {
                     if level > 0 {
                         Text("\(level)")
-                            .font(.system(size: 11, weight: .bold))
+                            .font(.system(size: 10, weight: .bold))
                             .foregroundColor(buttonColor)
                     }
                 }
@@ -1269,10 +1393,7 @@ struct SegmentScoreButton: View {
     }
 }
 
-// ==========================================
-// 画面全体で使い回す共通のポップアップメニュー本体
-// ==========================================
-
+// 画面全体で使い回す共通のポップアップメニュー本体（アニメーション付き閉じ処理）
 struct SharedSegmentScorePopup: View {
     let item: Item
     let buttonIndex: Int
@@ -1314,11 +1435,9 @@ struct SharedSegmentScorePopup: View {
             if currentLevel > 0 {
                 ForEach(0..<currentLevel, id: \.self) { num in
                     Button(action: {
-                        // アニメーションしながら値を切り替え
                         withAnimation(.easeInOut(duration: 0.2)) {
                             levelBinding.wrappedValue = num
                         }
-                        // スライド動作が見えるように少しだけ遅れてから閉じる
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
                             withAnimation(.easeInOut(duration: 0.1)) {
                                 activePopup = nil
@@ -1363,11 +1482,9 @@ struct SharedSegmentScorePopup: View {
             if currentLevel < 5 {
                 ForEach((currentLevel+1)...5, id: \.self) { num in
                     Button(action: {
-                        // アニメーションしながら値を切り替え
                         withAnimation(.easeInOut(duration: 0.2)) {
                             levelBinding.wrappedValue = num
                         }
-                        // 少しだけ遅れてから閉じる
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
                             withAnimation(.easeInOut(duration: 0.1)) {
                                 activePopup = nil
