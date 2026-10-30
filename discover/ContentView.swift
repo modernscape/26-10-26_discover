@@ -855,7 +855,7 @@ struct HighlightedItemRowView: View {
                         Text(activeCategoryName)
                             .font(.caption2)
                             .bold()
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.black)
                             .lineLimit(1)                // 1行に収める
                             .minimumScaleFactor(0.6)     // 最小で元の60%のサイズまで自動縮小
                             .frame(width: 38, alignment: .trailing)
@@ -1245,7 +1245,7 @@ struct ItemRowView: View {
                         Text(activeCategoryName)
                             .font(.caption2)
                             .bold()
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.black)
                             .lineLimit(1)                // 1行に収める
                             .minimumScaleFactor(0.6)     // 最小で元の60%のサイズまで自動縮小
                             .frame(width: 38, alignment: .trailing)
