@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 import PhotosUI
 import Foundation
+import Combine // ← ここを追加しました
 
 // ==========================================
 // Model Definitions
@@ -13,7 +14,8 @@ class Dream {
     var goalValue: String
     var currentTitle: String
     var currentValue: String
-    var imageData: Data?
+    var imageData: Data? // 互換性のために残す
+    var imagesData: [Data] = [] // 複数画像用（新規追加）
     
     @Relationship(deleteRule: .cascade)
     var items: [Item] = []
@@ -23,13 +25,15 @@ class Dream {
         goalValue: String = "100万円",
         currentTitle: String = "月収",
         currentValue: String = "35万円",
-        imageData: Data? = nil
+        imageData: Data? = nil,
+        imagesData: [Data] = []
     ) {
         self.goalTitle = goalTitle
         self.goalValue = goalValue
         self.currentTitle = currentTitle
         self.currentValue = currentValue
         self.imageData = imageData
+        self.imagesData = imagesData
         self.items = []
     }
 }
@@ -179,7 +183,7 @@ struct DreamDetailView: View {
     @State private var newMerit = ""
     @State private var newDemerit = ""
     
-    @State private var selectedPhotoItem: PhotosPickerItem? = nil
+    @State private var selectedPhotoItems: [PhotosPickerItem] = []
     @State private var sortCriterion: SortCriterion = .impact
     @State private var isDescending = true
     
@@ -231,28 +235,23 @@ struct DreamDetailView: View {
                     // --- ヘッダー部分 ---
                     VStack(spacing: 8) {
                         HStack(alignment: .center, spacing: 16) {
-                            PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
-                                if let data = dream.imageData, let uiImage = UIImage(data: data) {
-                                    Image(uiImage: uiImage)
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 98, height: 98)
-                                        .clipped()
-                                } else {
-                                    ZStack {
-                                        Rectangle()
-                                            .fill(Color(.systemGray5))
-                                            .frame(width: 98, height: 98)
-                                        Image(systemName: "photo.badge.plus")
-                                            .font(.title2)
-                                            .foregroundColor(.secondary)
-                                    }
-                                }
+                            // 複数画像のスライドショー対応ピッカー
+                            PhotosPicker(selection: $selectedPhotoItems, matching: .images) {
+                                SlideshowImageView(imagesData: dream.imagesData, singleImageData: dream.imageData)
+                                    .frame(width: 98, height: 98)
+                                    .clipped()
+                                    .cornerRadius(8)
                             }
-                            .onChange(of: selectedPhotoItem) { _, newItem in
+                            .onChange(of: selectedPhotoItems) { _, newItems in
                                 Task {
-                                    if let data = try? await newItem?.loadTransferable(type: Data.self) {
-                                        dream.imageData = data
+                                    var loadedDataList: [Data] = []
+                                    for item in newItems {
+                                        if let data = try? await item.loadTransferable(type: Data.self) {
+                                            loadedDataList.append(data)
+                                        }
+                                    }
+                                    if !loadedDataList.isEmpty {
+                                        dream.imagesData = loadedDataList
                                     }
                                 }
                             }
@@ -505,6 +504,54 @@ struct DreamDetailView: View {
     }
 }
 
+// ==========================================
+// 4-1. スライドショー用画像表示ビュー（文字なし・シンプル版）
+// ==========================================
+
+struct SlideshowImageView: View {
+    let imagesData: [Data]
+    let singleImageData: Data?
+    
+    @State private var currentIndex = 0
+    let timer = Timer.publish(every: 5.0, on: .main, in: .common).autoconnect()
+    
+    var body: some View {
+        let activeImages = !imagesData.isEmpty ? imagesData : (singleImageData != nil ? [singleImageData!] : [])
+        
+        Group {
+            if activeImages.isEmpty {
+                ZStack {
+                    Rectangle()
+                        .fill(Color(.systemGray5))
+                    Image(systemName: "photo.badge.plus")
+                        .font(.title2)
+                        .foregroundColor(.secondary)
+                }
+            } else {
+                let safeIndex = currentIndex < activeImages.count ? currentIndex : 0
+                if let uiImage = UIImage(data: activeImages[safeIndex]) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                        .id(safeIndex)
+                        .transition(.opacity)
+                } else {
+                    Rectangle().fill(Color(.systemGray5))
+                }
+            }
+        }
+        .frame(width: 98, height: 98)
+        .clipped()
+        .cornerRadius(8)
+        .onReceive(timer) { _ in
+            let activeCount = activeImages.count
+            guard activeCount > 1 else { return }
+            withAnimation(.easeInOut(duration: 0.6)) {
+                currentIndex = (currentIndex + 1) % activeCount
+            }
+        }
+    }
+}
 // ==========================================
 // 5. 「有力候補」タブのビュー
 // ==========================================
