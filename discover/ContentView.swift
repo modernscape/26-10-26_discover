@@ -706,6 +706,19 @@ struct HighlightedItemRowView: View {
         }
     }
     
+    // 現在選択中（またはポップアップが開いている）のボタン名を取得するプロパティ
+    private var activeCategoryName: String {
+        guard let popup = activePopup, popup.itemID == item.id else { return "" } // 非表示時や初期のデフォルト
+        switch popup.buttonIndex {
+        case 1: return "収入"
+        case 2: return "ワクワク"
+        case 3: return "貢献"
+        case 4: return "快適"
+        case 5: return "手軽"
+        default: return "収入"
+        }
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             
@@ -834,9 +847,19 @@ struct HighlightedItemRowView: View {
                             )
                             .accentColor(easeColor)
                         }
-                        .frame(width: UIScreen.main.bounds.width * 0.44)
+                        .frame(width: UIScreen.main.bounds.width * 0.38)
                         
-                        Spacer()
+                        Spacer(minLength: 4)
+                        
+                        // 左端に表示するテキスト
+                        Text(activeCategoryName)
+                            .font(.caption2)
+                            .bold()
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)                // 1行に収める
+                            .minimumScaleFactor(0.6)     // 最小で元の60%のサイズまで自動縮小
+                            .frame(width: 38, alignment: .trailing)
+                            .padding(.top, 4)
                         
                         HStack(alignment: .top, spacing: 4) {
                             HStack(alignment: .top, spacing: 2) {
@@ -1080,6 +1103,19 @@ struct ItemRowView: View {
         item.moneyLevel == 0 && item.funLevel == 0 && item.contributionLevel == 0 && item.comfortableLevel == 0 && item.easyStartLevel == 0
     }
     
+    // 現在選択中（またはポップアップが開いている）のボタン名を取得するプロパティ
+    private var activeCategoryName: String {
+        guard let popup = activePopup, popup.itemID == item.id else { return "" } // 非表示時や初期のデフォルト
+        switch popup.buttonIndex {
+        case 1: return "収入"
+        case 2: return "ワクワク"
+        case 3: return "貢献"
+        case 4: return "快適"
+        case 5: return "手軽"
+        default: return "収入"
+        }
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             
@@ -1201,9 +1237,19 @@ struct ItemRowView: View {
                             )
                             .accentColor(easeColor)
                         }
-                        .frame(width: UIScreen.main.bounds.width * 0.44)
+                        .frame(width: UIScreen.main.bounds.width * 0.38)
+                                                
+                        Spacer(minLength: 4)
                         
-                        Spacer()
+                        // 左端に表示するテキスト
+                        Text(activeCategoryName)
+                            .font(.caption2)
+                            .bold()
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)                // 1行に収める
+                            .minimumScaleFactor(0.6)     // 最小で元の60%のサイズまで自動縮小
+                            .frame(width: 38, alignment: .trailing)
+                            .padding(.top, 4)
                         
                         HStack(alignment: .top, spacing: 4) {
                             HStack(alignment: .top, spacing: 2) {
@@ -1400,6 +1446,18 @@ struct SegmentScoreButton: View {
     let systemImage: String
     let level: Int
     @Binding var activePopup: (itemID: PersistentIdentifier, buttonIndex: Int, frame: CGRect)?
+    
+    // インデックスに応じたカテゴリ名
+    private var categoryName: String {
+        switch index {
+        case 1: return "収入"
+        case 2: return "ワクワク"
+        case 3: return "貢献"
+        case 4: return "快適"
+        case 5: return "手軽"
+        default: return ""
+        }
+    }
     
     private var isSelecting: Bool {
         activePopup?.itemID == itemID && activePopup?.buttonIndex == index
