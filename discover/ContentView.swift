@@ -44,7 +44,7 @@ class Item {
     var merit: String
     var demerit: String
     var isCompleted: Bool
-    var isHighlighted: Bool // 神風フラグ
+    var isHighlighted: Bool // 有力候補フラグ
     var isExpanded: Bool // ← デフォルト値があるため、古いデータに存在しなくても自動で補完されます
     
     var moneyLevel: Int = 0
@@ -132,7 +132,7 @@ struct ContentView: View {
         ]
         
         let item2 = Item(title: "自分の好きなことを探究する", impact: 70.0, ease: 80.0, merit: "楽しい✨✨", demerit: "それでお金になるかは分からない。。", isHighlighted: false, moneyLevel: 3, funLevel: 5, contributionLevel: 3, comfortableLevel: 5, easyStartLevel: 4)
-        item1.actions = [
+        item2.actions = [
             Action(title: "お金を払っててもしたいことは何か？", done: true),
             Action(title: "突然仕事が休みになったら何をする？", done: false)
         ]
@@ -171,7 +171,7 @@ struct MainTabView: View {
             
             HighlightedItemsView(dream: dream)
                 .tabItem {
-                    Label("神風", systemImage: "flame.fill")
+                    Label("有力候補", systemImage: "flame.fill")
                 }
         }
     }
@@ -239,7 +239,7 @@ struct DreamDetailView: View {
         let spacing: CGFloat = 2.0
         
         let currentIndex = CGFloat(level)
-        return -(currentIndex * (itemHeight + spacing)) + 72.0
+        return -(currentIndex * (itemHeight + spacing)) + 72.0 - 19
     }
     
     var body: some View {
@@ -349,8 +349,7 @@ struct DreamDetailView: View {
                         .padding(.top, 2)
                     }
                     .padding(.horizontal, 16)
-                    .padding(.top, 8)
-                    .padding(.bottom, 8)
+                    .padding(.bottom, 10)
                     .background(Color(.systemGroupedBackground))
                     
                     // ==========================================
@@ -381,7 +380,8 @@ struct DreamDetailView: View {
                         .buttonStyle(.plain)
                     }
                     .padding(.horizontal, 16)
-                    .padding(.top, 6)
+                    .padding(.top, -2) // ← ここを調整して上へ引き上げます
+                    .padding(.bottom, 6)
                     .background(Color(.systemGroupedBackground)) // ← 周囲の背景をグレーに統一
                     
                     // --- スクロールビュー ---
@@ -525,7 +525,7 @@ struct DreamDetailView: View {
 }
 
 // ==========================================
-// 5. 「神風」タブのビュー
+// 5. 「有力候補」タブのビュー
 // ==========================================
 
 struct HighlightedItemsView: View {
@@ -553,7 +553,7 @@ struct HighlightedItemsView: View {
         let spacing: CGFloat = 2.0
         
         let currentIndex = CGFloat(level)
-        return -(currentIndex * (itemHeight + spacing)) + 67.2
+        return -(currentIndex * (itemHeight + spacing)) + 67 - 14
     }
     
     var body: some View {
@@ -562,7 +562,7 @@ struct HighlightedItemsView: View {
                 Group {
                     if highlightedItems.isEmpty {
                         ContentUnavailableView(
-                            "神風アクションがありません",
+                            "有力候補アクションがありません",
                             systemImage: "flame",
                             description: Text("「追い風アクション」タブで炎ボタンを押して指定すると、ここに表示されます。")
                         )
@@ -594,7 +594,7 @@ struct HighlightedItemsView: View {
                                 .buttonStyle(.plain)
                             }
                             .padding(.horizontal, 16)
-                            .padding(.top, 8)
+                            .padding(.top, -8) // ← ここを調整して上へ引き上げます
                             .padding(.bottom, 4)
                             .background(Color(.systemGroupedBackground)) // ← 周囲の背景をグレーに統一
                             
@@ -619,7 +619,7 @@ struct HighlightedItemsView: View {
                 }
                 .coordinateSpace(name: "RootSpace")
                 
-                // --- 神風タブ用の最前面共有ポップアップレイヤー ---
+                // --- 有力候補タブ用の最前面共有ポップアップレイヤー ---
                 if let popup = activePopup,
                    let targetItem = dream.items.first(where: { $0.id == popup.itemID }) {
                     
@@ -642,14 +642,14 @@ struct HighlightedItemsView: View {
                     .zIndex(999)
                 }
             }
-            .navigationTitle("神風")
+            .navigationTitle("有力候補")
             .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
 
 // ==========================================
-// 6. 「神風」タブ専用の行ビュー
+// 6. 「有力候補」タブ専用の行ビュー
 // ==========================================
 
 struct HighlightedItemRowView: View {
@@ -712,8 +712,8 @@ struct HighlightedItemRowView: View {
             // --- ヘッダー行（常時表示：番号、完了チェック、タイトル、アコーディオンボタン、炎ボタン） ---
             HStack(spacing: 12) {
                 Image(systemName: encircledSystemImage(for: index))
-                    .font(.title2)
-                    .foregroundColor(.accentColor)
+                    .font(.title)
+                    .foregroundColor(Color("FlameTint"))
                 
                 Button(action: {
                     item.isCompleted.toggle()
@@ -721,6 +721,8 @@ struct HighlightedItemRowView: View {
                     Image(systemName: item.isCompleted ? "checkmark.square.fill" : "square")
                         .foregroundColor(item.isCompleted ? impactColor : .secondary)
                         .font(.title2)
+                    
+                    
                 }
                 .buttonStyle(.plain)
                 
@@ -915,6 +917,56 @@ struct HighlightedItemRowView: View {
                         }
                         .frame(maxWidth: .infinity)
                     }
+                    
+                    // ==========================================
+                    // ★ ここから追加：アクション一覧 ＆ アクション追加ボタン
+                    // ==========================================
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Text("具体的なアクション")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Button(action: {
+                                withAnimation {
+                                    let newAction = Action(title: "")
+                                    item.actions.append(newAction)
+                                }
+                            }) {
+                                HStack(spacing: 2) {
+                                    Image(systemName: "plus.circle.fill")
+                                    Text("アクション追加")
+                                }
+                                .font(.caption)
+                                .bold()
+                                .foregroundColor(.accentColor)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        
+                        if item.actions.isEmpty {
+                            Text("アクションが登録されていません")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                                .italic()
+                                .padding(.vertical, 2)
+                        } else {
+                            VStack(spacing: 4) {
+                                ForEach(Array(item.actions.enumerated()), id: \.element.id) { actIndex, action in
+                                    ActionRowView(
+                                        index: actIndex + 1,
+                                        action: action,
+                                        onDelete: {
+                                            if let removeIdx = item.actions.firstIndex(where: { $0.id == action.id }) {
+                                                item.actions.remove(at: removeIdx)
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    .padding(.top, 4)
                 }
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
