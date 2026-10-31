@@ -830,16 +830,20 @@ struct ItemRowView: View {
                 }
                 .buttonStyle(.plain)
                 
-                TextField("行動を入力", text: $item.title)
+                TextField("行動を入力", text: $item.title, axis: .vertical)
                     .font(.headline)
-                    .lineLimit(1...2)         // 1行から最大2行までに設定
-    .minimumScaleFactor(0.8)  // 2行でも収まらない場合は少し縮小
-    .fixedSize(horizontal: false, vertical: true) // ← このモディファイアを試してみてください
-    .textInputAutocapitalization(.never)
+                    .lineLimit(1...2)         // 1行から最大2行まで
+                    .textInputAutocapitalization(.never)
                     .focused($isTitleFocused)
                     .clearButton(text: $item.title, isFocused: isTitleFocused)
                     .submitLabel(.done)
                     .onSubmit { isTitleFocused = false }
+                    .onChange(of: item.title) { _, newValue in
+                        if newValue.hasSuffix("\n") {
+                            item.title = String(newValue.dropLast())
+                            isTitleFocused = false
+                        }
+                    }
                     .strikethrough(item.isCompleted, color: .secondary)
                     .foregroundColor(item.isCompleted ? .secondary : .primary)
                 
