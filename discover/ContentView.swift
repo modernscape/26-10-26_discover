@@ -835,7 +835,7 @@ struct ItemRowView: View {
                     .lineLimit(1...2)         // 1行から最大2行までに設定
     .minimumScaleFactor(0.8)  // 2行でも収まらない場合は少し縮小
     .fixedSize(horizontal: false, vertical: true) // ← このモディファイアを試してみてください
-                    .textInputAutocapitalization(.never)
+    .textInputAutocapitalization(.never)
                     .focused($isTitleFocused)
                     .clearButton(text: $item.title, isFocused: isTitleFocused)
                     .submitLabel(.done)
