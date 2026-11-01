@@ -413,40 +413,41 @@ struct DreamDetailView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     HStack(spacing: 12) {
-                        Menu {
-                            Section("並び替え基準") {
-                                Button(action: { sortCriterion = .impact }) {
-                                    HStack {
-                                        Text("追い風力 (Impact)")
-                                        if sortCriterion == .impact { Image(systemName: "checkmark") }
-                                    }
-                                }
-                                Button(action: { sortCriterion = .ease }) {
-                                    HStack {
-                                        Text("やり易さ (Ease)")
-                                        if sortCriterion == .ease { Image(systemName: "checkmark") }
-                                    }
-                                }
-                            }
-                            
-                            Section("順序") {
-                                Button(action: { isDescending = true }) {
-                                    HStack {
-                                        Text("高い順 (降順)")
-                                        if isDescending { Image(systemName: "checkmark") }
-                                    }
-                                }
-                                Button(action: { isDescending = false }) {
-                                    HStack {
-                                        Text("低い順 (昇順)")
-                                        if !isDescending { Image(systemName: "checkmark") }
-                                    }
-                                }
-                            }
-                        } label: {
-                            Image(systemName: "arrow.up.arrow.down.circle.fill")
-                                .font(.title2)
-                        }
+//                        Menu {
+//                            Section("並び替え基準") {
+//                                Button(action: { sortCriterion = .impact }) {
+//                                    HStack {
+//                                        Text("追い風力 (Impact)")
+//                                        if sortCriterion == .impact { Image(systemName: "checkmark") }
+//                                    }
+//                                }
+//                                Button(action: { sortCriterion = .ease }) {
+//                                    HStack {
+//                                        Text("やり易さ (Ease)")
+//                                        if sortCriterion == .ease { Image(systemName: "checkmark") }
+//                                    }
+//                                }
+//                            }
+//                            
+//                            Section("順序") {
+//                                Button(action: { isDescending = true }) {
+//                                    HStack {
+//                                        Text("高い順 (降順)")
+//                                        if isDescending { Image(systemName: "checkmark") }
+//                                    }
+//                                }
+//                                Button(action: { isDescending = false }) {
+//                                    HStack {
+//                                        Text("低い順 (昇順)")
+//                                        if !isDescending { Image(systemName: "checkmark") }
+//                                    }
+//                                }
+//                            }
+//                        } label: {
+//                            Image(systemName: "arrow.up.arrow.down.circle.fill")
+//                                .font(.title2)
+//                        }
+                        SortMenuView(sortCriterion: $sortCriterion, isDescending: $isDescending)
                         
                         Button(action: { isAddingItem = true }) {
                             Image(systemName: "plus.circle.fill")
@@ -1397,6 +1398,53 @@ struct ClearButtonModifier: ViewModifier {
                 }
                 .buttonStyle(.plain)
             }
+        }
+    }
+}
+
+
+// ==========================================
+// 共通の並び替えメニューコンポーネント
+// ==========================================
+
+struct SortMenuView: View {
+    @Binding var sortCriterion: SortCriterion
+    @Binding var isDescending: Bool
+    
+    var body: some View {
+        Menu {
+            Section("並び替え基準") {
+                Button(action: { sortCriterion = .impact }) {
+                    HStack {
+                        Text("追い風力 (Impact)")
+                        if sortCriterion == .impact { Image(systemName: "checkmark") }
+                    }
+                }
+                Button(action: { sortCriterion = .ease }) {
+                    HStack {
+                        Text("やり易さ (Ease)")
+                        if sortCriterion == .ease { Image(systemName: "checkmark") }
+                    }
+                }
+            }
+            
+            Section("順序") {
+                Button(action: { isDescending = true }) {
+                    HStack {
+                        Text("高い順 (降順)")
+                        if isDescending { Image(systemName: "checkmark") }
+                    }
+                }
+                Button(action: { isDescending = false }) {
+                    HStack {
+                        Text("低い順 (昇順)")
+                        if !isDescending { Image(systemName: "checkmark") }
+                    }
+                }
+            }
+        } label: {
+            Image(systemName: "arrow.up.arrow.down.circle.fill")
+                .font(.title2)
         }
     }
 }
