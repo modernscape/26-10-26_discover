@@ -1095,6 +1095,20 @@ struct ItemRowView: View {
                         }
                         .padding(.top, 4)
                     }
+                    // 
+                    
+                    // --- ItemRowView のアコーディオン内の下端に以下を挿入 ---
+
+// --- 画像プレースホルダー（5つ） ---
+ItemImagesSelectorView(item: item)
+    .padding(.top, 4)
+
+// --- 手書きキャンバス ---
+HandwritingCanvasView(item: item)
+    .padding(.top, 4)
+
+                    
+                    
                 }
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
@@ -1186,6 +1200,204 @@ struct FlameParticlesView: View {
 // ==========================================
 // 9. ヘルパー・共通コンポーネント
 // ==========================================
+
+
+// ==========================================
+// A. 5つの画像プレースホルダー＆ピッカー
+// ==========================================
+
+struct ItemImagesSelectorView: View {
+    @Bindable var item: Item
+    @State private var selectedItems: [PhotosPickerItem] = []
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("画像メモ（最大5枚）")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            HStack(spacing: 8) {
+                ForEach(0..<5, id: \.self) { index in
+                    PhotosPicker(selection: $selectedItems, maxSelectionCount: 5, matching: .images) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color(.systemGray6))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color(.systemGray4), lineWidth: 1)
+                                )
+                            
+                            if index < item.imagesData.count, let uiImage = UIImage(data: item.imagesData[index]) {
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 52, height: 52)
+                                    .clipped()
+                                    .cornerRadius(8)
+                            } else {
+                                Image(systemName: "photo.badge.plus")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .frame(width: 52, height: 52)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .onChange(of: selectedItems) { _, newItems in
+                Task {
+                    var newDatas: [Data] = []
+                    for pickerItem in newItems {
+                        if let data = try? await pickerItem.loadTransferable(type: Data.self) {
+                            newDatas.append(data)
+                        }
+                    }
+                    if !newDatas.isEmpty {
+                        item.imagesData = Array(newDatas.prefix(5))
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ==========================================
+// B. 手書きキャンバスビュー（カラー選択・クリア付き）
+// ==========================================
+
+struct Line: Identifiable {
+    let id = UUID()
+    var points: [CGPoint]
+    var color: Color
+    var lineWidth: CGFloat = 4.0
+}
+
+struct HandwritingCanvasView: View {
+    @Bindable var item: Item
+    
+    @State private var lines: [Line] = []
+    @State private var currentLine = Line(points: [], color: .black)
+    @State private var selectedColor: Color = .black
+    
+    let paletteColors: [(Color, String)] = [
+        (.black, "黒"), (.red, "赤"), (.blue, "青"), (.yellow, "黄"), (.green, "緑")
+    ]
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text("手書きメモ")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Spacer()
+                
+                // カラーパレット＆クリアボタン
+                HStack(spacing: 8) {
+                    ForEach(paletteColors, id: \.1) { color, name in
+                        Button(action: {
+                            selectedColor = color
+                        }) {
+                            Circle()
+                                .fill(color)
+                                .frame(width: 20, height: 20)
+                                .overlay(
+                                    Circle().stroke(Color.white, lineWidth: selectedColor == color ? 2 : 0)
+                                )
+                                .shadow(radius: 1)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    
+                    Button("クリア") {
+                        lines.removeAll()
+                        saveCanvas()
+                    }
+                    .font(.caption2)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color(.systemGray5))
+                    .cornerRadius(4)
+                }
+            }
+            
+            // 描画キャンバス本体
+            ZStack {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color(.systemBackground))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color(.systemGray4), lineWidth: 1)
+                    )
+                
+                Canvas { context, size in
+                    for line in lines {
+                        var path = Path()
+                        guard let first = line.points.first else { continue }
+                        path.move(to: first)
+                        for point in line.points.dropFirst() {
+                            path.addLine(to: point)
+                        }
+                        context.stroke(path, with: .color(line.color), lineWidth: line.lineWidth)
+                    }
+                }
+                .gesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { value in
+                            let loc = value.location
+                            if currentLine.points.isEmpty {
+                                currentLine = Line(points: [loc], color: selectedColor)
+                                lines.append(currentLine)
+                            } else {
+                                lines[lines.count - 1].points.append(loc)
+                            }
+                        }
+                        .onEnded { _ in
+                            currentLine = Line(points: [], color: selectedColor)
+                            saveCanvas()
+                        }
+                )
+            }
+            .frame(height: 140)
+            .clipped()
+            .cornerRadius(8)
+            .onAppear {
+                loadCanvas()
+            }
+        }
+    }
+    
+    private func saveCanvas() {
+        let renderer = ImageRenderer(content:
+            ZStack {
+                Color.white
+                Canvas { context, size in
+                    for line in lines {
+                        var path = Path()
+                        guard let first = line.points.first else { continue }
+                        path.move(to: first)
+                        for point in line.points.dropFirst() {
+                            path.addLine(to: point)
+                        }
+                        context.stroke(path, with: .color(line.color), lineWidth: line.lineWidth)
+                    }
+                }
+                .frame(width: 300, height: 140)
+            }
+        )
+        if let uiImage = renderer.uiImage, let data = uiImage.pngData() {
+            item.drawData = data
+        }
+    }
+    
+    private func loadCanvas() {
+        if let data = item.drawData, let uiImage = UIImage(data: data) {
+            // 必要に応じてロード時の復元処理をここに記述（プレビュー等として画像表示も可能）
+        }
+    }
+}
+
 
 struct LegendItemView: View {
     let systemImage: String
