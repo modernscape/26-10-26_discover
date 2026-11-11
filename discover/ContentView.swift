@@ -172,7 +172,7 @@ struct MainTabView: View {
 // 4. 「追い風アクション」タブのビュー
 // ==========================================
 
-enum SortCriterion {
+enum SortCriterion: String, CaseIterable {
     case impact
     case ease
 }
@@ -419,40 +419,6 @@ struct DreamDetailView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     HStack(spacing: 12) {
-//                        Menu {
-//                            Section("並び替え基準") {
-//                                Button(action: { sortCriterion = .impact }) {
-//                                    HStack {
-//                                        Text("追い風力 (Impact)")
-//                                        if sortCriterion == .impact { Image(systemName: "checkmark") }
-//                                    }
-//                                }
-//                                Button(action: { sortCriterion = .ease }) {
-//                                    HStack {
-//                                        Text("やり易さ (Ease)")
-//                                        if sortCriterion == .ease { Image(systemName: "checkmark") }
-//                                    }
-//                                }
-//                            }
-//                            
-//                            Section("順序") {
-//                                Button(action: { isDescending = true }) {
-//                                    HStack {
-//                                        Text("高い順 (降順)")
-//                                        if isDescending { Image(systemName: "checkmark") }
-//                                    }
-//                                }
-//                                Button(action: { isDescending = false }) {
-//                                    HStack {
-//                                        Text("低い順 (昇順)")
-//                                        if !isDescending { Image(systemName: "checkmark") }
-//                                    }
-//                                }
-//                            }
-//                        } label: {
-//                            Image(systemName: "arrow.up.arrow.down.circle.fill")
-//                                .font(.title2)
-//                        }
                         SortMenuView(sortCriterion: $sortCriterion, isDescending: $isDescending)
                         
                         Button(action: { isAddingItem = true }) {
@@ -567,8 +533,29 @@ struct HighlightedItemsView: View {
     @Bindable var dream: Dream
     @State private var activePopup: (itemID: PersistentIdentifier, buttonIndex: Int, frame: CGRect)? = nil
     
-    private var highlightedItems: [Item] {
-        dream.items.filter { $0.isHighlighted }
+//    private var highlightedItems: [Item] {
+//        dream.items.filter { $0.isHighlighted }
+//    }
+//    
+    // ★ ソート設定の永続化（タブ専用）
+    @AppStorage("highlighted_sortCriterion") private var sortCriterionRaw: String = SortCriterion.impact.rawValue
+    private var sortCriterion: SortCriterion {
+        get { SortCriterion(rawValue: sortCriterionRaw) ?? .impact }
+        set { sortCriterionRaw = newValue.rawValue }
+    }
+    @AppStorage("highlighted_isDescending") private var isDescending = true
+    
+    // ★ ソート適用済みの有力候補リスト
+    private var sortedHighlightedItems: [Item] {
+        let filtered = dream.items.filter { $0.isHighlighted }
+        return filtered.sorted { item1, item2 in
+            switch sortCriterion {
+            case .impact:
+                return isDescending ? item1.impact > item2.impact : item1.impact < item2.impact
+            case .ease:
+                return isDescending ? item1.ease > item2.ease : item1.ease < item2.ease
+            }
+        }
     }
     
     private func getScoreLevel(item: Item, buttonIndex: Int) -> Int {
@@ -595,7 +582,7 @@ struct HighlightedItemsView: View {
         NavigationStack {
             ZStack {
                 Group {
-                    if highlightedItems.isEmpty {
+                    if sortedHighlightedItems.isEmpty {
                         ContentUnavailableView(
                             "有力候補アクションがありません",
                             systemImage: "flame",
@@ -607,16 +594,16 @@ struct HighlightedItemsView: View {
                             HStack {
                                 Spacer()
                                 Button(action: {
-                                    let hasExpanded = highlightedItems.contains { $0.isExpandedHighlighted }
+                                    let hasExpanded = sortedHighlightedItems.contains { $0.isExpandedHighlighted }
                                     withAnimation(.easeInOut(duration: 0.25)) {
-                                        for item in highlightedItems {
+                                        for item in sortedHighlightedItems {
                                             item.isExpandedHighlighted = !hasExpanded
                                         }
                                     }
                                 }) {
                                     HStack(spacing: 4) {
-                                        Image(systemName: highlightedItems.contains { $0.isExpandedHighlighted } ? "chevron.up.circle" : "chevron.down.circle")
-                                        Text(highlightedItems.contains { $0.isExpandedHighlighted } ? "すべて畳む" : "すべて開く")
+                                        Image(systemName: sortedHighlightedItems.contains { $0.isExpandedHighlighted } ? "chevron.up.circle" : "chevron.down.circle")
+                                        Text(sortedHighlightedItems.contains { $0.isExpandedHighlighted } ? "すべて畳む" : "すべて開く")
                                     }
                                     .font(.caption)
                                     .bold()
@@ -635,7 +622,7 @@ struct HighlightedItemsView: View {
                             
                             ScrollView {
                                 LazyVStack(spacing: 12) {
-                                    ForEach(Array(highlightedItems.enumerated()), id: \.element.id) { index, item in
+                                    ForEach(Array(sortedHighlightedItems.enumerated()), id: \.element.id) { index, item in
                                         ItemRowView(index: index + 1, item: item, dream: dream, activePopup: $activePopup)
                                             .padding(12)
                                             .background(
@@ -679,6 +666,20 @@ struct HighlightedItemsView: View {
             }
             .navigationTitle("有力候補")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    SortMenuView(
+                        sortCriterion: Binding(
+                            get: { self.sortCriterion },
+                            set: { newValue in
+                                // ★ self.sortCriterion ではなく、AppStorageの基となる文字列プロパティを更新する
+                                self.sortCriterionRaw = newValue.rawValue
+                            }
+                        ),
+                        isDescending: $isDescending
+                    )
+                }
+            }
         }
     }
 }
@@ -1296,7 +1297,7 @@ struct ItemImagesSelectorView: View {
 //// B
 
 // ==========================================
-// B. 手書きキャンバスビュー（エラー解消版）
+// B. 手書きキャンバスビュー（編集中のスクロール競合解消版）
 // ==========================================
 
 struct DrawnLine: Codable, Identifiable {
@@ -1435,15 +1436,17 @@ struct HandwritingCanvasView: View {
                         context.stroke(path, with: .color(selectedColor), lineWidth: 4.0)
                     }
                 }
-                // ★ 修正点: ジェスチャーの有無で分岐せず、内部で isEditable を判定して無効化する
-                .gesture(
+                // ロック中はヒットテスト自体をオフ（スクロール透過）
+                .allowsHitTesting(isEditable)
+                // ★ 変更点: 編集中はスクロールよりも描画ジェスチャーを優先的に処理させる
+                .highPriorityGesture(
                     DragGesture(minimumDistance: 0)
                         .onChanged { value in
-                            guard isEditable else { return } // ロック中は入力を無視
+                            guard isEditable else { return }
                             currentPoints.append(value.location)
                         }
                         .onEnded { _ in
-                            guard isEditable else { return } // ロック中は入力を無視
+                            guard isEditable else { return }
                             if !currentPoints.isEmpty {
                                 let hex = colorToHex(selectedColor)
                                 let newLine = DrawnLine(points: currentPoints.map { CGPointDTO($0) }, colorHex: hex)
@@ -1454,15 +1457,16 @@ struct HandwritingCanvasView: View {
                         }
                 )
                 
-                if !isEditable {
-                    Text("タップして編集を有効化（スクロール保護中）")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                        .padding(6)
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(6)
-                        .allowsHitTesting(false)
-                }
+                // ロック中のガイド表示
+//                if !isEditable {
+//                    Text("タップして編集を有効化（スクロール保護中）")
+//                        .font(.caption2)
+//                        .foregroundColor(.secondary)
+//                        .padding(6)
+//                        .background(.ultraThinMaterial)
+//                        .cornerRadius(6)
+//                        .allowsHitTesting(false)
+//                }
             }
             .frame(height: 280)
             .clipped()
@@ -1489,13 +1493,16 @@ struct HandwritingCanvasView: View {
         }
     }
     
+    let decoder = JSONDecoder()
+    
     private func loadCanvas() {
         if let data = item.drawData,
-           let decodedLines = try? JSONDecoder().decode([DrawnLine].self, from: data) {
+           let decodedLines = try? decoder.decode([DrawnLine].self, from: data) {
             self.lines = decodedLines
         }
     }
 }
+
 
 
 
