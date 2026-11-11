@@ -1201,9 +1201,15 @@ struct FlameParticlesView: View {
 // 9. ヘルパー・共通コンポーネント
 // ==========================================
 
+//// A 
+
+
+
+
+//// A end
 
 // ==========================================
-// A. 5つの画像プレースホルダー＆ピッカー
+// A. 5つの画像プレースホルダー＆ピッカー（修正版：追加・保持対応）
 // ==========================================
 
 struct ItemImagesSelectorView: View {
@@ -1212,11 +1218,26 @@ struct ItemImagesSelectorView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("画像メモ（最大5枚）")
-                .font(.caption)
-                .foregroundColor(.secondary)
+            HStack {
+                Text("画像メモ（最大5枚）")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Spacer()
+                
+                // 画像が保存されている場合にクリアするボタン
+                if !item.imagesData.isEmpty {
+                    Button("全画像クリア") {
+                        item.imagesData.removeAll()
+                    }
+                    .font(.caption2)
+                    .foregroundColor(.red)
+                    .buttonStyle(.plain)
+                }
+            }
             
             HStack(spacing: 8) {
+                // 5つの枠を表示
                 ForEach(0..<5, id: \.self) { index in
                     PhotosPicker(selection: $selectedItems, maxSelectionCount: 5, matching: .images) {
                         ZStack {
@@ -1234,6 +1255,8 @@ struct ItemImagesSelectorView: View {
                                     .frame(width: 52, height: 52)
                                     .clipped()
                                     .cornerRadius(8)
+                                    
+                                    // 削除用の×マークを右上に出すことも可能ですが、まずはシンプルに表示
                             } else {
                                 Image(systemName: "photo.badge.plus")
                                     .font(.system(size: 16))
@@ -1247,20 +1270,28 @@ struct ItemImagesSelectorView: View {
             }
             .onChange(of: selectedItems) { _, newItems in
                 Task {
-                    var newDatas: [Data] = []
+                    var loadedDatas: [Data] = []
                     for pickerItem in newItems {
                         if let data = try? await pickerItem.loadTransferable(type: Data.self) {
-                            newDatas.append(data)
+                            loadedDatas.append(data)
                         }
                     }
-                    if !newDatas.isEmpty {
-                        item.imagesData = Array(newDatas.prefix(5))
+                    
+                    if !loadedDatas.isEmpty {
+                        // ★修正: 既存のデータと新しく選んだデータを結合し、最大5枚までに制限する
+                        var currentImages = item.imagesData
+                        currentImages.append(contentsOf: loadedDatas)
+                        item.imagesData = Array(currentImages.prefix(5))
+                        
+                        // 選択状態をリセットして、次回の選択を受け付けられるようにする
+                        selectedItems.removeAll()
                     }
                 }
             }
         }
     }
 }
+
 
 //// B
 
