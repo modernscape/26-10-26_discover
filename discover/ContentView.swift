@@ -233,6 +233,20 @@ struct DreamDetailView: View {
         return -(currentIndex * (itemHeight + spacing)) + 72.0 - 19
     }
     
+    private var combinedImagesData: [Data] {
+        var list: [Data] = []
+        
+        // 1. Dream自身の画像
+        list.append(contentsOf: dream.imagesData)
+        
+        // 2. 有力候補アイテムの画像を結合（IDや画像データの総数も監視に絡ませる）
+        for item in dream.items where item.isHighlighted {
+            list.append(contentsOf: item.imagesData)
+        }
+        
+        return list
+    }
+    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -243,10 +257,14 @@ struct DreamDetailView: View {
                         HStack(alignment: .center, spacing: 16) {
                             // 複数画像のスライドショー対応ピッカー
                             PhotosPicker(selection: $selectedPhotoItems, matching: .images) {
-                                SlideshowImageView(imagesData: dream.imagesData, singleImageData: dream.imageData)
-                                    .frame(width: 98, height: 98)
-                                    .clipped()
-                                    .cornerRadius(8)
+                                SlideshowImageView(
+                                    imagesData: combinedImagesData,
+                                    singleImageData: dream.imageData
+                                )
+                                .frame(width: 98, height: 98)
+                                .clipped()
+                                .cornerRadius(8)
+                                  
                             }
                             .onChange(of: selectedPhotoItems) { _, newItems in
                                 Task {
@@ -478,7 +496,7 @@ struct DreamDetailView: View {
 }
 
 // ==========================================
-// 4-1. スライドショー用画像表示ビュー（文字なし・シンプル版）
+// 4-1. スライドショー用画像表示ビュー（完全同期・ランダム対応版）
 // ==========================================
 
 struct SlideshowImageView: View {
@@ -486,13 +504,15 @@ struct SlideshowImageView: View {
     let singleImageData: Data?
     
     @State private var currentIndex = 0
+    @State private var shuffledImages: [Data] = []
+    
     let timer = Timer.publish(every: 5.0, on: .main, in: .common).autoconnect()
     
     var body: some View {
-        let activeImages = !imagesData.isEmpty ? imagesData : (singleImageData != nil ? [singleImageData!] : [])
+//        let activeImages = !imagesData.isEmpty ? imagesData : (singleImageData != nil ? [singleImageData!] : [])
         
         Group {
-            if activeImages.isEmpty {
+            if shuffledImages.isEmpty {
                 ZStack {
                     Rectangle()
                         .fill(Color(.systemGray5))
@@ -501,8 +521,8 @@ struct SlideshowImageView: View {
                         .foregroundColor(.secondary)
                 }
             } else {
-                let safeIndex = currentIndex < activeImages.count ? currentIndex : 0
-                if let uiImage = UIImage(data: activeImages[safeIndex]) {
+                let safeIndex = currentIndex < shuffledImages.count ? currentIndex : 0
+                if let uiImage = UIImage(data: shuffledImages[safeIndex]) {
                     Image(uiImage: uiImage)
                         .resizable()
                         .scaledToFill()
@@ -516,15 +536,34 @@ struct SlideshowImageView: View {
         .frame(width: 98, height: 98)
         .clipped()
         .cornerRadius(8)
+        // ★ 渡された画像データ（配列の中身・要素数そのもの）が変化した瞬間に必ず再シャッフルする
+        .onChange(of: imagesData, initial: true) { _, newImagesData in
+            let targetImages = !newImagesData.isEmpty ? newImagesData : (singleImageData != nil ? [singleImageData!] : [])
+            updateShuffledImages(activeImages: targetImages)
+        }
+        .onChange(of: singleImageData) { _, newSingle in
+            let targetImages = !imagesData.isEmpty ? imagesData : (newSingle != nil ? [newSingle!] : [])
+            updateShuffledImages(activeImages: targetImages)
+        }
         .onReceive(timer) { _ in
-            let activeCount = activeImages.count
-            guard activeCount > 1 else { return }
+            let count = shuffledImages.count
+            guard count > 1 else { return }
             withAnimation(.easeInOut(duration: 0.6)) {
-                currentIndex = (currentIndex + 1) % activeCount
+                currentIndex = (currentIndex + 1) % count
             }
         }
     }
+    
+    private func updateShuffledImages(activeImages: [Data]) {
+        if activeImages.isEmpty {
+            shuffledImages = []
+        } else {
+            shuffledImages = activeImages.shuffled()
+        }
+        currentIndex = 0
+    }
 }
+
 // ==========================================
 // 5. 「有力候補」タブのビュー
 // ==========================================
@@ -1202,20 +1241,17 @@ struct FlameParticlesView: View {
 // 9. ヘルパー・共通コンポーネント
 // ==========================================
 
-//// A 
-
-
-
-
-//// A end
 
 // ==========================================
-// A. 5つの画像プレースホルダー＆ピッカー（修正版：追加・保持対応）
+// A. 5つの画像プレースホルダー＆ピッカー（個別変更・置換対応版）
 // ==========================================
 
 struct ItemImagesSelectorView: View {
     @Bindable var item: Item
-    @State private var selectedItems: [PhotosPickerItem] = []
+    
+    // 現在どの枠（0〜4）の画像を変更しようとしているかを保持
+    @State private var targetIndex: Int? = nil
+    @State private var selectedPhotoItem: PhotosPickerItem? = nil
     
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -1226,7 +1262,6 @@ struct ItemImagesSelectorView: View {
                 
                 Spacer()
                 
-                // 画像が保存されている場合にクリアするボタン
                 if !item.imagesData.isEmpty {
                     Button("全画像クリア") {
                         item.imagesData.removeAll()
@@ -1238,9 +1273,21 @@ struct ItemImagesSelectorView: View {
             }
             
             HStack(spacing: 8) {
-                // 5つの枠を表示
+                // 5つの固定枠を表示
                 ForEach(0..<5, id: \.self) { index in
-                    PhotosPicker(selection: $selectedItems, maxSelectionCount: 5, matching: .images) {
+                    // PhotosPicker を各枠に配置し、タップされたインデックスを記録
+                    PhotosPicker(
+                        selection: Binding(
+                            get: { nil },
+                            set: { newItem in
+                                if let newItem = newItem {
+                                    targetIndex = index
+                                    selectedPhotoItem = newItem
+                                }
+                            }
+                        ),
+                        matching: .images
+                    ) {
                         ZStack {
                             RoundedRectangle(cornerRadius: 8)
                                 .fill(Color(.systemGray6))
@@ -1256,8 +1303,6 @@ struct ItemImagesSelectorView: View {
                                     .frame(width: 52, height: 52)
                                     .clipped()
                                     .cornerRadius(8)
-                                    
-                                    // 削除用の×マークを右上に出すことも可能ですが、まずはシンプルに表示
                             } else {
                                 Image(systemName: "photo.badge.plus")
                                     .font(.system(size: 16))
@@ -1269,30 +1314,30 @@ struct ItemImagesSelectorView: View {
                     .buttonStyle(.plain)
                 }
             }
-            .onChange(of: selectedItems) { _, newItems in
+            // 選択された写真のロードと配列への反映
+            .onChange(of: selectedPhotoItem) { _, newItem in
+                guard let newItem = newItem, let target = targetIndex else { return }
+                
                 Task {
-                    var loadedDatas: [Data] = []
-                    for pickerItem in newItems {
-                        if let data = try? await pickerItem.loadTransferable(type: Data.self) {
-                            loadedDatas.append(data)
+                    if let data = try? await newItem.loadTransferable(type: Data.self) {
+                        // 配列の要素数が足りない場合はプレースホルダー的に空データで埋める
+                        while item.imagesData.count <= target {
+                            item.imagesData.append(Data())
                         }
-                    }
-                    
-                    if !loadedDatas.isEmpty {
-                        // ★修正: 既存のデータと新しく選んだデータを結合し、最大5枚までに制限する
-                        var currentImages = item.imagesData
-                        currentImages.append(contentsOf: loadedDatas)
-                        item.imagesData = Array(currentImages.prefix(5))
                         
-                        // 選択状態をリセットして、次回の選択を受け付けられるようにする
-                        selectedItems.removeAll()
+                        // 指定されたインデックスの画像を置き換え
+                        item.imagesData[target] = data
+                        
+                        // 未使用の空データがあれば後ろから削るなどの微調整（必要に応じて）
+                        // 選択状態をリセット
+                        selectedPhotoItem = nil
+                        targetIndex = nil
                     }
                 }
             }
         }
     }
 }
-
 
 //// B
 
