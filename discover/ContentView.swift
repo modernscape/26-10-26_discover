@@ -56,12 +56,16 @@ class Item {
     var comfortableLevel: Int = 0
     var easyStartLevel: Int = 0
     
+    // ★ 追加：画像5枚用と手書きデータ用
+    var imagesData: [Data] = []
+    var drawData: Data? = nil
+    
     var dream: Dream?
     
     @Relationship(deleteRule: .cascade)
     var actions: [Action] = []
     
-    init(title: String, impact: Double = 50.0, ease: Double = 50.0, merit: String = "", demerit: String = "", isCompleted: Bool = false, isHighlighted: Bool = false, isExpanded: Bool = true, isExpandedHighlighted: Bool = true, moneyLevel: Int = 0, funLevel: Int = 0, contributionLevel: Int = 0, comfortableLevel: Int = 0, easyStartLevel: Int = 0) {
+    init(title: String, impact: Double = 50.0, ease: Double = 50.0, merit: String = "", demerit: String = "", isCompleted: Bool = false, isHighlighted: Bool = false, isExpanded: Bool = true, isExpandedHighlighted: Bool = true, moneyLevel: Int = 0, funLevel: Int = 0, contributionLevel: Int = 0, comfortableLevel: Int = 0, easyStartLevel: Int = 0,imagesData: [Data] = [], drawData: Data? = nil) {
         self.title = title
         self.impact = impact
         self.ease = ease
@@ -76,6 +80,8 @@ class Item {
         self.contributionLevel = contributionLevel
         self.comfortableLevel = comfortableLevel
         self.easyStartLevel = easyStartLevel
+        self.imagesData = imagesData
+        self.drawData = drawData
         self.actions = []
     }
 }
