@@ -1262,8 +1262,10 @@ struct ItemImagesSelectorView: View {
     }
 }
 
+//// B
+
 // ==========================================
-// B. 手書きキャンバスビュー（高さ2倍・編集ロック・確実な保存対応）
+// B. 手書きキャンバスビュー（エラー解消版）
 // ==========================================
 
 struct DrawnLine: Codable, Identifiable {
@@ -1273,7 +1275,6 @@ struct DrawnLine: Codable, Identifiable {
     var lineWidth: CGFloat = 4.0
 }
 
-// CGPointのSwiftData/JSON保存用DTO
 struct CGPointDTO: Codable {
     var x: CGFloat
     var y: CGFloat
@@ -1294,7 +1295,7 @@ struct HandwritingCanvasView: View {
     @State private var lines: [DrawnLine] = []
     @State private var currentPoints: [CGPoint] = []
     @State private var selectedColor: Color = .black
-    @State private var isEditable: Bool = false // ★ 編集ロック状態（初期値はロック＝スクロール優先）
+    @State private var isEditable: Bool = false
     
     let paletteColors: [(Color, String, String)] = [
         (.black, "黒", "black"),
@@ -1313,7 +1314,6 @@ struct HandwritingCanvasView: View {
                 
                 Spacer()
                 
-                // ★ 編集ロック切り替えボタン
                 Button(action: {
                     isEditable.toggle()
                 }) {
@@ -1332,7 +1332,6 @@ struct HandwritingCanvasView: View {
                 .buttonStyle(.plain)
             }
             
-            // カラーパレット＆クリアボタン（編集可能な時だけ操作しやすく表示、あるいは常時表示）
             if isEditable {
                 HStack(spacing: 8) {
                     ForEach(paletteColors, id: \.1) { color, name, hex in
@@ -1364,7 +1363,6 @@ struct HandwritingCanvasView: View {
                 }
             }
             
-            // 描画キャンバス本体（高さ280に変更）
             ZStack {
                 RoundedRectangle(cornerRadius: 8)
                     .fill(Color(.systemBackground))
@@ -1396,7 +1394,6 @@ struct HandwritingCanvasView: View {
                         context.stroke(path, with: .color(color), lineWidth: line.lineWidth)
                     }
                     
-                    // 現在描画中のライン
                     if !currentPoints.isEmpty {
                         var path = Path()
                         guard let first = currentPoints.first else { return }
@@ -1407,30 +1404,25 @@ struct HandwritingCanvasView: View {
                         context.stroke(path, with: .color(selectedColor), lineWidth: 4.0)
                     }
                 }
+                // ★ 修正点: ジェスチャーの有無で分岐せず、内部で isEditable を判定して無効化する
                 .gesture(
-                    // isEditable が true の時だけ描画ジェスチャーを受け付ける（falseの時はスクロールを邪魔しない）
-                    Group {
-                        if isEditable {
-                            DragGesture(minimumDistance: 0)
-                                .onChanged { value in
-                                    currentPoints.append(value.location)
-                                }
-                                .onEnded { _ in
-                                    if !currentPoints.isEmpty {
-                                        let hex = colorToHex(selectedColor)
-                                        let newLine = DrawnLine(points: currentPoints.map { CGPointDTO($0) }, colorHex: hex)
-                                        lines.append(newLine)
-                                        currentPoints.removeAll()
-                                        saveCanvas()
-                                    }
-                                }
-                        } else {
-                            nil
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { value in
+                            guard isEditable else { return } // ロック中は入力を無視
+                            currentPoints.append(value.location)
                         }
-                    }
+                        .onEnded { _ in
+                            guard isEditable else { return } // ロック中は入力を無視
+                            if !currentPoints.isEmpty {
+                                let hex = colorToHex(selectedColor)
+                                let newLine = DrawnLine(points: currentPoints.map { CGPointDTO($0) }, colorHex: hex)
+                                lines.append(newLine)
+                                currentPoints.removeAll()
+                                saveCanvas()
+                            }
+                        }
                 )
                 
-                // ロック中のガイド表示
                 if !isEditable {
                     Text("タップして編集を有効化（スクロール保護中）")
                         .font(.caption2)
@@ -1441,7 +1433,7 @@ struct HandwritingCanvasView: View {
                         .allowsHitTesting(false)
                 }
             }
-            .frame(height: 280) // 高さ2倍 (140 -> 280)
+            .frame(height: 280)
             .clipped()
             .cornerRadius(8)
             .onAppear {
@@ -1473,6 +1465,12 @@ struct HandwritingCanvasView: View {
         }
     }
 }
+
+
+
+
+//// B end
+
 
 
 struct LegendItemView: View {
