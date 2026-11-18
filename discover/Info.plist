@@ -190,6 +190,43 @@
                 <key>SKAdNetworkIdentifier</key>
                 <string>3qcr597p9d.skadnetwork</string>
             </dict>
+            <!-- 追加する不足分ネットワークの SKAdNetworkIdentifier -->
+            <dict>
+                <key>SKAdNetworkIdentifier</key>
+                <string>wg4vff78zm.skadnetwork</string>
+            </dict>
+            <dict>
+                <key>SKAdNetworkIdentifier</key>
+                <string>f73kdq92p3.skadnetwork</string>
+            </dict>
+            <dict>
+                <key>SKAdNetworkIdentifier</key>
+                <string>44jx6755aq.skadnetwork</string>
+            </dict>
+            <dict>
+                <key>SKAdNetworkIdentifier</key>
+                <string>prcb7njmu6.skadnetwork</string>
+            </dict>
+            <dict>
+                <key>SKAdNetworkIdentifier</key>
+                <string>m5mvw97r93.skadnetwork</string>
+            </dict>
+            <dict>
+                <key>SKAdNetworkIdentifier</key>
+                <string>wzmmz9fp6w.skadnetwork</string>
+            </dict>
+            <dict>
+                <key>SKAdNetworkIdentifier</key>
+                <string>5lm9lj6jb7.skadnetwork</string>
+            </dict>
+            <dict>
+                <key>SKAdNetworkIdentifier</key>
+                <string>zq492l623r.skadnetwork</string>
+            </dict>
+            <dict>
+                <key>SKAdNetworkIdentifier</key>
+                <string>7rz58n8umn.skadnetwork</string>
+            </dict>
         </array>
     </dict>
 </plist>

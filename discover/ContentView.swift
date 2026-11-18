@@ -110,7 +110,13 @@ private func requestTrackingAndInitializeAds() {
     // 画面が完全にアクティブになってからダイアログを表示するため少し遅延させる
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
         ATTrackingManager.requestTrackingAuthorization { status in
-            // 許可・拒否どちらの結果であっても、その後に広告SDKを初期化する
+            
+            // ★ ここに「あなたの実機のテストデバイスID」を登録する
+            // シミュレータの場合は自動でテスト広告になるため追加不要です
+            MobileAds.shared.requestConfiguration.testDeviceIdentifiers = [
+                "383b7d3b87f83a76d0b491e13e77cf1b" // ここにXcodeのコンソールに出る英数字のIDを入れる
+            ]
+            
             MobileAds.shared.start(completionHandler: nil)
         }
     }
