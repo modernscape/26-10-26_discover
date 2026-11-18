@@ -7,9 +7,15 @@
 
 import SwiftUI
 import SwiftData
+import GoogleMobileAds
 
 @main
 struct discoverApp: App {
+    init() {
+        // Google Mobile Ads SDK の初期化
+        MobileAds.shared.start(completionHandler: nil)
+    }
+    
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Dream.self,

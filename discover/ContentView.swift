@@ -3,6 +3,8 @@ import SwiftData
 import PhotosUI
 import Foundation
 import Combine // ← ここを追加しました
+import AppTrackingTransparency
+import GoogleMobileAds
 
 // ==========================================
 // Model Definitions
@@ -103,6 +105,17 @@ class Action {
 // 2. メインビュー
 // ==========================================
 
+// ATT（トラッキング許可）のリクエストと AdMob SDK の初期化
+private func requestTrackingAndInitializeAds() {
+    // 画面が完全にアクティブになってからダイアログを表示するため少し遅延させる
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        ATTrackingManager.requestTrackingAuthorization { status in
+            // 許可・拒否どちらの結果であっても、その後に広告SDKを初期化する
+            MobileAds.shared.start(completionHandler: nil)
+        }
+    }
+}
+
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var dreams: [Dream]
@@ -118,6 +131,10 @@ struct ContentView: View {
                     }
             }
         }
+        .onAppear {
+            requestTrackingAndInitializeAds()
+        }
+
     }
     
     private func setupInitialData(context: ModelContext) {
@@ -166,6 +183,8 @@ struct MainTabView: View {
                 }
         }
     }
+    
+
 }
 
 // ==========================================
@@ -245,6 +264,14 @@ struct DreamDetailView: View {
         }
         
         return list
+    }
+    
+    // 共通のバナービュー
+    private var bannerContainer: some View {
+        AdMobBannerView()
+            .frame(height: 50)
+            .frame(maxWidth: .infinity)
+            .background(Color(.systemBackground))
     }
     
     var body: some View {
@@ -406,6 +433,7 @@ struct DreamDetailView: View {
                         .padding(.bottom, 20)
                     }
                     .background(Color(.systemGroupedBackground))
+                    .withAdMobBanner() // ★ これだけ
                 }
                 .coordinateSpace(name: "RootSpace")
                 
@@ -617,6 +645,14 @@ struct HighlightedItemsView: View {
         return -(currentIndex * (itemHeight + spacing)) + 67 - 14
     }
     
+    // 共通のバナービュー
+    private var bannerContainer: some View {
+        AdMobBannerView()
+            .frame(height: 50)
+            .frame(maxWidth: .infinity)
+            .background(Color(.systemBackground))
+    }
+    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -678,6 +714,7 @@ struct HighlightedItemsView: View {
                         .background(Color(.systemGroupedBackground))
                     }
                 }
+                .withAdMobBanner() // ★ これだけ
                 .coordinateSpace(name: "RootSpace")
                 
                 // --- 有力候補タブ用の最前面共有ポップアップレイヤー ---
