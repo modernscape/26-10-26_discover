@@ -107,20 +107,22 @@ class Action {
 
 // ATT（トラッキング許可）のリクエストと AdMob SDK の初期化
 private func requestTrackingAndInitializeAds() {
-    // 画面が完全にアクティブになってからダイアログを表示するため少し遅延させる
+    // 1. まず最初にテスト端末IDを同期的に設定する
+    MobileAds.shared.requestConfiguration.testDeviceIdentifiers = [
+        "383b7d3b87f83a76d0b491e13e77cf1b"
+    ]
+    
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-        ATTrackingManager.requestTrackingAuthorization { status in
-            
-            // ★ ここに「あなたの実機のテストデバイスID」を登録する
-            // シミュレータの場合は自動でテスト広告になるため追加不要です
-            MobileAds.shared.requestConfiguration.testDeviceIdentifiers = [
-                "383b7d3b87f83a76d0b491e13e77cf1b" // ここにXcodeのコンソールに出る英数字のIDを入れる
-            ]
-            
-            MobileAds.shared.start(completionHandler: nil)
+        ATTrackingManager.requestTrackingAuthorization { _ in
+            DispatchQueue.main.async {
+                MobileAds.shared.start(completionHandler: nil)
+            }
         }
     }
 }
+
+
+
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
